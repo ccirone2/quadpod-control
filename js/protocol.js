@@ -10,7 +10,7 @@ export const GAITS = [{ id: GAIT.CREEP, label: 'creep' }, { id: GAIT.TROT, label
 export const SPEED = { MAX_MM_S: 40, MAX_DEG_S: 30 };
 
 export const ANIMS = ['stand', 'sit', 'rest', 'wave', 'bow', 'pushup', 'stretch', 'lie', 'highfive',
-  'wiggle', 'leglift', 'look', 'sway', 'bounce', 'twist', 'ball'].map((label, id) => ({ id, label }));
+  'wiggle', 'leglift', 'look', 'sway', 'bounce', 'twist', 'ball', 'splay'].map((label, id) => ({ id, label }));
 
 export const help  = () => '?';
 export const engine = () => 'E';
@@ -21,6 +21,10 @@ export const demo  = () => 'Y';
 export const listCal = () => 'L';
 export const query = () => 'Q';
 export const anim  = id => `A ${r(id)}`;
+// Whole-body postures shown next to Home / Rest / Stand up rather than in the animation grid.
+export const POSTURES = ['ball', 'splay'];
+export const ball  = () => anim(ANIMS.find(a => a.label === 'ball').id);
+export const splay = () => anim(ANIMS.find(a => a.label === 'splay').id);
 export const gait  = (type, vx = 0, vy = 0, wz = 0) => `G ${r(type)} ${r(vx)} ${r(vy)} ${r(wz)}`;
 export const stopGait = (type = GAIT.STOP) => gait(type, 0, 0, 0);
 export const pose  = ({ x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0 } = {}) =>

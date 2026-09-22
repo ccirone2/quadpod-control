@@ -15,8 +15,8 @@ export default {
       armed = setTimeout(() => { armed = null; off.textContent = 'Power off'; }, 2000);
     } }, 'Power off');
 
-    const chips = P.ANIMS.map(a => h('button', { class: 'btn soft', 'data-id': a.id, onclick: () => {
-      for (const c of chips) c.classList.toggle('on', c === chips[a.id]);
+    const chips = P.ANIMS.filter(a => !P.POSTURES.includes(a.label)).map(a => h('button', { class: 'btn soft', 'data-id': a.id, onclick: () => {
+      for (const c of chips) c.classList.toggle('on', +c.dataset.id === a.id);
       ctx.send(P.anim(a.id));
     } }, a.label));
 
@@ -26,6 +26,8 @@ export default {
           h('button', { class: 'btn', onclick: () => P.run(P.standUp(), ctx.send) }, 'Stand up'),
           h('button', { class: 'btn soft', onclick: () => ctx.send(P.home()) }, 'Home'),
           h('button', { class: 'btn soft', onclick: () => ctx.send(P.rest()) }, 'Rest'),
+          h('button', { class: 'btn soft', onclick: () => ctx.send(P.ball()) }, 'Ball'),
+          h('button', { class: 'btn soft', onclick: () => ctx.send(P.splay()) }, 'Splay'),
           h('button', { class: 'btn warn', onclick: () => P.run(P.sleep(), ctx.send) }, 'Sleep'),
           off)),
       card('Animations', null,

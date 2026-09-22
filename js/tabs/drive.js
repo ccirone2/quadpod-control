@@ -94,7 +94,9 @@ export default {
         h('div', { class: 'grid tight needs-link' },
           h('button', { class: 'btn', onclick: () => P.run(P.standUp(), ctx.send) }, 'Stand up'),
           h('button', { class: 'btn soft', onclick: () => ctx.send(P.home()) }, 'Home'),
-          h('button', { class: 'btn soft', onclick: () => ctx.send(P.rest()) }, 'Rest'))),
+          h('button', { class: 'btn soft', onclick: () => ctx.send(P.rest()) }, 'Rest'),
+          h('button', { class: 'btn soft', onclick: () => ctx.send(P.ball()) }, 'Ball'),
+          h('button', { class: 'btn soft', onclick: () => ctx.send(P.splay()) }, 'Splay'))),
     );
 
     this.halt = () => { releaseStick(); left.release(); right.release(); stop(); };
