@@ -2,205 +2,32 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#101216" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
 <title>Quadpod</title>
 <meta name="description" content="Bluetooth control page for the quadpod robot (Web Bluetooth, Android Chrome).">
-<style>
-  :root {
-    --bg: #f4f5f7; --panel: #ffffff; --ink: #1c1e24; --muted: #6b7280; --line: #d9dce3;
-    --key: #2563eb; --key-ink: #ffffff; --ok: #16a34a; --warn: #d97706; --bad: #dc2626;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #101216; --panel: #1a1d24; --ink: #e8eaf0; --muted: #9aa1ad; --line: #2b303b;
-      --key: #3b82f6; --key-ink: #ffffff;
-    }
-  }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding: 12px 16px 24px; max-width: 520px; margin-inline: auto; }
-  h1 { font-size: 20px; margin: 0; letter-spacing: .02em; }
-  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-  #status { font-size: 13px; color: var(--muted); }
-  #status.on { color: var(--ok); }
-  section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
-  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
-  button { font: inherit; border: 0; border-radius: 10px; padding: 12px 10px; background: var(--key); color: var(--key-ink); font-weight: 600; touch-action: none; user-select: none; }
-  button:active, button.held { filter: brightness(.8); }
-  button.soft { background: var(--line); color: var(--ink); font-weight: 500; }
-  button.bad { background: var(--bad); }
-  button.warn { background: var(--warn); }
-  button:disabled { opacity: .4; }
-  .row { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); }
-  .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 300px; margin: 0 auto; }
-  .pad button { aspect-ratio: 1.3; font-size: 15px; }
-  .pad .blank { visibility: hidden; }
-  .gait { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
-  .gait button { padding: 8px 16px; }
-  .gait button.on { outline: 3px solid var(--ok); }
-  .anims { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
-  .anims button { background: var(--line); color: var(--ink); font-weight: 500; }
-  label { display: grid; grid-template-columns: 56px 1fr 44px; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0; }
-  label output { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
-  input[type=range] { width: 100%; }
-  #log { font: 12px/1.5 ui-monospace, Consolas, monospace; white-space: pre-wrap; height: 140px; overflow-y: auto; color: var(--muted); }
-  #log .tx { color: var(--warn); }
-  #log .err { color: var(--bad); }
-  .note { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <div><h1>Quadpod</h1><div id="status">not connected</div></div>
-  <button id="connect">Connect</button>
+<header id="top">
+  <div class="who">
+    <span id="dot" class="dot" aria-hidden="true"></span>
+    <div>
+      <h1>Quadpod</h1>
+      <div id="status">not connected</div>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="connect" class="btn">Connect</button>
+    <button id="estop" class="btn bad" title="Stop walking and power the servos off">STOP</button>
+  </div>
 </header>
 
-<section>
-  <h2>Robot</h2>
-  <div class="row">
-    <button data-cmd="R" data-then="A 0" data-delay="1500">Stand up</button>
-    <button data-cmd="A 2">Rest</button>
-    <button data-cmd="H">Home</button>
-    <button data-cmd="A 2" data-then="X" data-delay="2000" class="warn">Sleep</button>
-    <button data-cmd="X" class="bad">Power off</button>
-  </div>
-</section>
+<main id="view"></main>
 
-<section>
-  <h2>Drive <span class="note" style="display:inline">hold a button to walk</span></h2>
-  <div class="pad">
-    <button data-v="0 0 30">turn left</button>
-    <button data-v="0 40 0">forward</button>
-    <button data-v="0 0 -30">turn right</button>
-    <button data-v="-40 0 0">strafe left</button>
-    <button class="soft" id="stop">stop</button>
-    <button data-v="40 0 0">strafe right</button>
-    <button class="blank"></button>
-    <button data-v="0 -40 0">back</button>
-    <button class="blank"></button>
-  </div>
-  <div class="gait">
-    <button class="soft on" data-gait="1">creep</button>
-    <button class="soft" data-gait="2">trot</button>
-  </div>
-</section>
+<nav id="tabs" aria-label="Sections"></nav>
 
-<section>
-  <h2>Pose</h2>
-  <label>height <input type="range" id="z" min="-30" max="30" value="0"><output>0</output></label>
-  <label>roll <input type="range" id="roll" min="-25" max="25" value="0"><output>0</output></label>
-  <label>pitch <input type="range" id="pitch" min="-25" max="25" value="0"><output>0</output></label>
-  <label>yaw <input type="range" id="yaw" min="-30" max="30" value="0"><output>0</output></label>
-  <div class="row" style="margin-top:8px"><button class="soft" id="level">level</button></div>
-</section>
-
-<section>
-  <h2>Animations</h2>
-  <div class="row anims" id="anims"></div>
-  <div class="row" style="margin-top:8px"><button data-cmd="Y">Demo: play all</button></div>
-</section>
-
-<section>
-  <h2>Log</h2>
-  <div id="log"></div>
-  <p class="note">Needs Chrome on Android over https. Robot advertises as "quadpod".</p>
-</section>
-
-<script>
-const NUS = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
-const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
-const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
-const ANIMS = ['stand','sit','rest','wave','bow','pushup','stretch','lie','highfive','wiggle','leglift','look','sway','bounce','twist'];
-
-const $ = s => document.querySelector(s);
-const log = $('#log'), status = $('#status');
-let device = null, rx = null, rxText = '';
-let gait = 1, driveTimer = null, driveV = null;
-
-function say(text, cls) {
-  const el = document.createElement('div'); el.textContent = text; if (cls) el.className = cls;
-  log.appendChild(el); while (log.childElementCount > 200) log.firstChild.remove();
-  log.scrollTop = log.scrollHeight;
-}
-
-async function connect() {
-  if (!navigator.bluetooth) { say('Web Bluetooth is not available in this browser', 'err'); return; }
-  try {
-    device = await navigator.bluetooth.requestDevice({ filters: [{ services: [NUS] }] });
-    device.addEventListener('gattserverdisconnected', () => { status.textContent = 'disconnected'; status.className = ''; rx = null; });
-    const server = await device.gatt.connect();
-    const svc = await server.getPrimaryService(NUS);
-    rx = await svc.getCharacteristic(RX);
-    const tx = await svc.getCharacteristic(TX);
-    await tx.startNotifications();
-    tx.addEventListener('characteristicvaluechanged', e => {
-      rxText += new TextDecoder().decode(e.target.value);
-      let i;
-      while ((i = rxText.indexOf('\n')) >= 0) { const line = rxText.slice(0, i).trim(); rxText = rxText.slice(i + 1); if (line) say('< ' + line); }
-    });
-    status.textContent = 'connected to ' + (device.name || 'quadpod'); status.className = 'on';
-    say('connected');
-  } catch (err) { say('connect failed: ' + err.message, 'err'); }
-}
-
-let sending = Promise.resolve();
-function send(cmd, quiet) {
-  if (!rx) { say('not connected', 'err'); return; }
-  if (!quiet) say('> ' + cmd, 'tx');
-  const bytes = new TextEncoder().encode(cmd + '\n');
-  sending = sending.then(async () => {
-    for (let i = 0; i < bytes.length; i += 20) await rx.writeValueWithoutResponse(bytes.slice(i, i + 20));
-  }).catch(err => say('send failed: ' + err.message, 'err'));
-}
-
-// one-shot buttons, optionally followed by a second command after a delay
-document.querySelectorAll('[data-cmd]').forEach(b => b.addEventListener('click', () => {
-  send(b.dataset.cmd);
-  if (b.dataset.then) setTimeout(() => send(b.dataset.then), +b.dataset.delay || 0);
-}));
-
-// drive: hold to walk, resend every 200 ms for the firmware watchdog, stop on release
-function startDrive(v) {
-  driveV = v; send(`G ${gait} ${v}`);
-  clearInterval(driveTimer);
-  driveTimer = setInterval(() => send(`G ${gait} ${driveV}`, true), 200);
-}
-function stopDrive() {
-  clearInterval(driveTimer); driveTimer = null;
-  if (driveV !== null) { driveV = null; send(`G ${gait} 0 0 0`); }
-  document.querySelectorAll('[data-v]').forEach(b => b.classList.remove('held'));
-}
-document.querySelectorAll('[data-v]').forEach(b => {
-  b.addEventListener('pointerdown', e => { e.preventDefault(); b.classList.add('held'); startDrive(b.dataset.v); });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => b.addEventListener(ev, stopDrive));
-});
-$('#stop').addEventListener('click', () => { stopDrive(); send('G 0 0 0 0'); });
-document.querySelectorAll('[data-gait]').forEach(b => b.addEventListener('click', () => {
-  gait = +b.dataset.gait;
-  document.querySelectorAll('[data-gait]').forEach(x => x.classList.toggle('on', x === b));
-  if (driveV !== null) send(`G ${gait} ${driveV}`);
-}));
-
-// pose sliders: at most 10 sends per second
-let poseTimer = null;
-function sendPose() {
-  const v = id => +$('#' + id).value;
-  send(`P 0 0 ${v('z')} ${v('roll')} ${v('pitch')} ${v('yaw')}`, true);
-}
-['z', 'roll', 'pitch', 'yaw'].forEach(id => $('#' + id).addEventListener('input', e => {
-  e.target.nextElementSibling.value = e.target.value;
-  if (!poseTimer) poseTimer = setTimeout(() => { poseTimer = null; sendPose(); }, 100);
-}));
-$('#level').addEventListener('click', () => {
-  ['z', 'roll', 'pitch', 'yaw'].forEach(id => { $('#' + id).value = 0; $('#' + id).nextElementSibling.value = 0; });
-  send('P 0 0 0 0 0 0');
-});
-
-ANIMS.forEach((name, i) => {
-  const b = document.createElement('button'); b.textContent = name;
-  b.addEventListener('click', () => send('A ' + i));
-  $('#anims').appendChild(b);
-});
-$('#connect').addEventListener('click', connect);
-</script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
