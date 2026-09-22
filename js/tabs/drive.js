@@ -79,6 +79,7 @@ export default {
     // --- speed and gait ---
     const speed = slider('speed', { min: 25, max: 100, value: 75, format: v => v + '%', onInput: v => { s.speed = v / 100; if (s.active) pushThrottled(); } });
     const gaitSeg = segmented(P.GAITS, s.gait, id => { s.gait = id; if (s.active) push(false); });
+    const idleSeg = segmented([{ id: 1, label: 'fidgets on' }, { id: 0, label: 'fidgets off' }], 1, id => ctx.send(P.idle(id)));
 
     root.append(
       card('Drive', 'move the stick to walk',
@@ -89,7 +90,7 @@ export default {
             h('span', {}, 'vx ', readout.vx), h('span', {}, 'vy ', readout.vy), h('span', {}, 'wz ', readout.wz)),
         )),
       card('Settings', null,
-        h('div', { class: 'needs-link' }, speed.el, h('div', { style: 'margin-top:8px' }, gaitSeg.el))),
+        h('div', { class: 'needs-link' }, speed.el, h('div', { style: 'margin-top:8px' }, gaitSeg.el), h('div', { style: 'margin-top:8px' }, idleSeg.el))),
       card('Quick', null,
         h('div', { class: 'grid tight needs-link' },
           h('button', { class: 'btn', onclick: () => P.run(P.standUp(), ctx.send) }, 'Stand up'),
