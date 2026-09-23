@@ -38,8 +38,8 @@ export default {
   mount(root, ctx) {
     const cur = {};
     const sliders = {};
-    let snap = false;
-    try { snap = localStorage.getItem('quadpod.snap') === '1'; } catch {}
+    let snap = true;
+    try { snap = localStorage.getItem('quadpod.snap') !== '0'; } catch {}
     const send = throttle(() => ctx.send(P.pose(cur), { quiet: true }), 100);
     const make = a => {
       cur[a.key] = 0;
@@ -48,7 +48,11 @@ export default {
         onRelease: () => { if (snap && cur[a.key] !== 0) { cur[a.key] = 0; sliders[a.key].set(0); send(); } } });
       return sliders[a.key].el;
     };
-    const snapBox = h('input', { type: 'checkbox', checked: snap, onchange: e => { snap = e.target.checked; try { localStorage.setItem('quadpod.snap', snap ? '1' : '0'); } catch {} } });
+    const snapBox = h('input', { type: 'checkbox', checked: snap, onchange: e => {
+      snap = e.target.checked;
+      try { localStorage.setItem('quadpod.snap', snap ? '1' : '0'); } catch {}
+      if (snap) apply({});                       // turning it on centres everything now
+    } });
     const apply = pose => {
       for (const k in cur) { cur[k] = pose[k] || 0; sliders[k].set(cur[k]); }
       send.cancel(); ctx.send(P.pose(cur));
@@ -58,9 +62,8 @@ export default {
 
     root.append(
       card('Poses', null,
-        h('div', { class: 'grid cols3 needs-link' },
-          POSES.map(p => h('button', { class: 'btn' + (p.primary ? '' : ' soft'), onclick: () => { reset(); ctx.send(p.cmd()); } }, p.label))),
-        h('div', { class: 'chips needs-link', style: 'margin-top:10px' },
+        h('div', { class: 'grid cols5 needs-link' },
+          POSES.map(p => h('button', { class: 'btn' + (p.primary ? '' : ' soft'), onclick: () => { reset(); ctx.send(p.cmd()); } }, p.label)),
           PRESETS.map(p => h('button', { class: 'btn soft', onclick: () => apply(p.pose) }, p.label)))),
       card('Body pose', h('label', { class: 'toggle' }, snapBox, 'snap back'),
         h('div', { class: 'needs-link' },

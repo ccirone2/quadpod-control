@@ -77,6 +77,8 @@ body {
 .grid.tight { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); }
 .grid.cols3 { grid-template-columns: repeat(3, 1fr); }
 .grid.cols3 .btn { padding: 14px 6px; }
+.grid.cols5 { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.grid.cols5 .btn { padding: 14px 2px; font-size: 13px; white-space: nowrap; overflow: hidden; }
 .toggle { display: flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-weight: 400; cursor: pointer; }
 .toggle input { accent-color: var(--key); width: 16px; height: 16px; margin: 0; }
 .seg { display: flex; gap: 6px; background: var(--soft); border-radius: 10px; padding: 4px; }

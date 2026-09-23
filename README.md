@@ -14,7 +14,7 @@ powers the servos off from any tab.
 | Tab     | What it does |
 |---------|--------------|
 | Drive   | Proportional joystick (forward/back, strafe), hold-to-turn buttons, speed limiter, creep/trot |
-| Pose    | Poses card: postures (Stand, Rest, Sit, Lie, Ball, Splay) plus standing presets (tall, crouch, peek, lean); body height / roll / pitch / yaw sliders, x/y shift under "more", "snap back" toggle returns a slider to centre on release |
+| Pose    | Poses card: postures (Stand, Rest, Sit, Lie, Ball, Splay) plus standing presets (tall, crouch, peek, lean); body height / roll / pitch / yaw sliders, x/y shift under "more", "snap back" toggle (default on) returns a slider to centre on release and centres everything when switched on |
 | Actions | All animations, demo |
 | Console | Reply log, raw command line with history, quick commands |
 
