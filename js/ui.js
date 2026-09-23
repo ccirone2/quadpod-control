@@ -37,11 +37,13 @@ export function throttle(fn, ms) {
   return t;
 }
 
-// Labelled range slider. onInput(value) fires on every change; returns {el, set(v), get()}.
-export function slider(label, { min, max, value = 0, step = 1, format = String, onInput }) {
+// Labelled range slider. onInput(value) fires on every change, onRelease(value) when the thumb is let go;
+// returns {el, set(v), get()}.
+export function slider(label, { min, max, value = 0, step = 1, format = String, onInput, onRelease }) {
   const out = h('output', {}, format(value));
   const input = h('input', { type: 'range', min, max, step, value });
   input.addEventListener('input', () => { out.value = format(+input.value); onInput?.(+input.value); });
+  for (const ev of ['pointerup', 'pointercancel', 'keyup']) input.addEventListener(ev, () => onRelease?.(+input.value));
   const el = h('label', { class: 'slider' }, label, input, out);
   return { el, get: () => +input.value, set: v => { input.value = v; out.value = format(+v); } };
 }
@@ -58,5 +60,5 @@ export function segmented(options, value, onChange) {
 }
 
 export function card(title, hint, ...children) {
-  return h('section', { class: 'card' }, h('h2', {}, title, hint ? h('span', { class: 'hint' }, hint) : null), ...children);
+  return h('section', { class: 'card' }, h('h2', {}, title, hint ? (typeof hint === 'string' ? h('span', { class: 'hint' }, hint) : hint) : null), ...children);
 }

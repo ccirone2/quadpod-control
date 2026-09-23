@@ -3,15 +3,16 @@
 import * as P from '../protocol.js';
 import { h, card, slider, throttle } from '../ui.js';
 
+// Ranges cover the legs' reach from the 60 mm standing height (the firmware IK clamps anything beyond).
 const AXES = [
-  { key: 'z',     label: 'height', min: -30, max: 30 },
-  { key: 'roll',  label: 'roll',   min: -25, max: 25 },
-  { key: 'pitch', label: 'pitch',  min: -25, max: 25 },
-  { key: 'yaw',   label: 'yaw',    min: -30, max: 30 },
+  { key: 'z',     label: 'height', min: -35, max: 45 },
+  { key: 'roll',  label: 'roll',   min: -40, max: 40 },
+  { key: 'pitch', label: 'pitch',  min: -40, max: 40 },
+  { key: 'yaw',   label: 'yaw',    min: -45, max: 45 },
 ];
 const EXTRA = [
-  { key: 'x', label: 'shift x', min: -20, max: 20 },
-  { key: 'y', label: 'shift y', min: -20, max: 20 },
+  { key: 'x', label: 'shift x', min: -35, max: 35 },
+  { key: 'y', label: 'shift y', min: -35, max: 35 },
 ];
 // Whole-body postures (each one resets the sliders to zero). Stand is the H command: home stance, level.
 const POSES = [
@@ -37,8 +38,17 @@ export default {
   mount(root, ctx) {
     const cur = {};
     const sliders = {};
+    let snap = false;
+    try { snap = localStorage.getItem('quadpod.snap') === '1'; } catch {}
     const send = throttle(() => ctx.send(P.pose(cur), { quiet: true }), 100);
-    const make = a => { cur[a.key] = 0; sliders[a.key] = slider(a.label, { ...a, onInput: v => { cur[a.key] = v; send(); } }); return sliders[a.key].el; };
+    const make = a => {
+      cur[a.key] = 0;
+      sliders[a.key] = slider(a.label, { ...a,
+        onInput: v => { cur[a.key] = v; send(); },
+        onRelease: () => { if (snap && cur[a.key] !== 0) { cur[a.key] = 0; sliders[a.key].set(0); send(); } } });
+      return sliders[a.key].el;
+    };
+    const snapBox = h('input', { type: 'checkbox', checked: snap, onchange: e => { snap = e.target.checked; try { localStorage.setItem('quadpod.snap', snap ? '1' : '0'); } catch {} } });
     const apply = pose => {
       for (const k in cur) { cur[k] = pose[k] || 0; sliders[k].set(cur[k]); }
       send.cancel(); ctx.send(P.pose(cur));
@@ -48,11 +58,11 @@ export default {
 
     root.append(
       card('Poses', null,
-        h('div', { class: 'grid tight needs-link' },
+        h('div', { class: 'grid cols3 needs-link' },
           POSES.map(p => h('button', { class: 'btn' + (p.primary ? '' : ' soft'), onclick: () => { reset(); ctx.send(p.cmd()); } }, p.label))),
         h('div', { class: 'chips needs-link', style: 'margin-top:10px' },
           PRESETS.map(p => h('button', { class: 'btn soft', onclick: () => apply(p.pose) }, p.label)))),
-      card('Body pose', 'feet stay planted',
+      card('Body pose', h('label', { class: 'toggle' }, snapBox, 'snap back'),
         h('div', { class: 'needs-link' },
           AXES.map(make),
           h('details', {}, h('summary', {}, 'more'), EXTRA.map(make)))),

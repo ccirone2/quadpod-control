@@ -14,7 +14,7 @@ export default {
 
     root.append(
       card('Animations', null,
-        h('div', { class: 'chips needs-link' }, chips),
+        h('div', { class: 'grid cols3 needs-link' }, chips),
         h('div', { class: 'grid needs-link', style: 'margin-top:10px' },
           h('button', { class: 'btn', onclick: () => ctx.send(P.demo()) }, 'Demo: play all'))),
     );
