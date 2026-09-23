@@ -14,8 +14,8 @@ powers the servos off from any tab.
 | Tab     | What it does |
 |---------|--------------|
 | Drive   | Proportional joystick (forward/back, strafe), hold-to-turn buttons, speed limiter, creep/trot |
-| Pose    | Body height / roll / pitch / yaw sliders, x/y shift under "more", named presets |
-| Actions | Stand up, Home, Rest, Sleep, Power off (double tap), all animations, demo |
+| Pose    | Whole-body poses (Stand up, Home, Rest, Sit, Ball, Splay), body height / roll / pitch / yaw sliders, x/y shift under "more", slider presets |
+| Actions | All animations, demo |
 | Console | Reply log, raw command line with history, quick commands |
 
 ## Files
@@ -47,7 +47,7 @@ export default {
 
 `ctx` gives you `send(cmd, {quiet})`, `log(text, cls)`, `link`, and the log buffer helpers. Add the module
 to `TABS` in `js/app.js`. Mark controls that need a connection with class `needs-link` and they dim until
-connected. New commands go in `js/protocol.js`; new poses in the `PRESETS` table of `js/tabs/pose.js`.
+connected. New commands go in `js/protocol.js`; new whole-body poses in `POSES` and new slider presets in `PRESETS`, both in `js/tabs/pose.js`.
 
 ## Testing locally
 

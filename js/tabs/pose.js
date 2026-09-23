@@ -1,4 +1,5 @@
-// Pose tab: body height / roll / pitch / yaw sliders (feet stay planted), x/y shift under "more", presets.
+// Pose tab: whole-body poses (stand up, home, rest, sit, ball, splay), then body height / roll / pitch / yaw
+// sliders (feet stay planted), x/y shift under "more", and named slider presets.
 import * as P from '../protocol.js';
 import { h, card, slider, throttle } from '../ui.js';
 
@@ -12,7 +13,16 @@ const EXTRA = [
   { key: 'x', label: 'shift x', min: -20, max: 20 },
   { key: 'y', label: 'shift y', min: -20, max: 20 },
 ];
-// Named poses: add more here, they appear as chips.
+// Whole-body poses. Stand up is the stand animation; the rest are one-shot postures.
+const POSES = [
+  { label: 'Stand up', cmd: P.standUp, primary: true },
+  { label: 'Home',  cmd: P.home },
+  { label: 'Rest',  cmd: P.rest },
+  { label: 'Sit',   cmd: P.sit },
+  { label: 'Ball',  cmd: P.ball },
+  { label: 'Splay', cmd: P.splay },
+];
+// Named body-pose presets for the sliders: add more here, they appear as chips.
 const PRESETS = [
   { label: 'level',  pose: {} },
   { label: 'tall',   pose: { z: 25 } },
@@ -36,6 +46,9 @@ export default {
     };
 
     root.append(
+      card('Poses', null,
+        h('div', { class: 'grid tight needs-link' },
+          POSES.map(p => h('button', { class: 'btn' + (p.primary ? '' : ' soft'), onclick: () => ctx.send(p.cmd()) }, p.label)))),
       card('Body pose', 'feet stay planted',
         h('div', { class: 'needs-link' },
           AXES.map(make),

@@ -3,7 +3,7 @@
 import * as P from '../protocol.js';
 import { h, card } from '../ui.js';
 
-const QUICK = [['?', P.help()], ['L', P.listCal()], ['Q', P.query()], ['H', P.home()], ['X', P.off()]];
+const QUICK = [['?', P.help()], ['L', P.listCal()], ['Q', P.query()], ['H', P.home()]];
 const HISTORY = 20;
 
 export default {
