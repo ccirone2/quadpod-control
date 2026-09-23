@@ -15,7 +15,7 @@ export default {
       armed = setTimeout(() => { armed = null; off.textContent = 'Power off'; }, 2000);
     } }, 'Power off');
 
-    const chips = P.ANIMS.filter(a => !P.POSTURES.includes(a.label)).map(a => h('button', { class: 'btn soft', 'data-id': a.id, onclick: () => {
+    const chips = P.ANIMS.filter(a => !P.POSTURES.includes(a.label) && !P.HIDDEN.includes(a.label)).map(a => h('button', { class: 'btn soft', 'data-id': a.id, onclick: () => {
       for (const c of chips) c.classList.toggle('on', +c.dataset.id === a.id);
       ctx.send(P.anim(a.id));
     } }, a.label));

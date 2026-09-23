@@ -11,7 +11,7 @@ export const SPEED = { MAX_MM_S: 40, MAX_DEG_S: 30 };
 
 export const ANIMS = ['stand', 'sit', 'rest', 'wave', 'bow', 'pushup', 'stretch', 'lie', 'highfive',
   'wiggle', 'leglift', 'look', 'sway', 'bounce', 'twist', 'ball', 'splay',
-  'breathe', 'circle', 'peek', 'scratch', 'point', 'dig', 'kick', 'scrape', 'splash'].map((label, id) => ({ id, label }));
+  'breathe', 'circle', 'peek', 'scratch', 'point', 'kick', 'scrape', 'splash'].map((label, id) => ({ id, label }));
 
 export const help  = () => '?';
 export const engine = () => 'E';
@@ -22,6 +22,8 @@ export const demo  = () => 'Y';
 export const listCal = () => 'L';
 export const query = () => 'Q';
 export const anim  = id => `A ${r(id)}`;
+// Idle fidgets: the robot plays these by itself; not shown on the page (they are meant as a surprise).
+export const HIDDEN = ['breathe', 'look', 'scratch', 'sway', 'stretch', 'scrape'];
 // Whole-body postures shown next to Home / Rest / Stand up rather than in the animation grid.
 export const POSTURES = ['ball', 'splay'];
 export const ball  = () => anim(ANIMS.find(a => a.label === 'ball').id);
@@ -31,7 +33,6 @@ export const stopGait = (type = GAIT.STOP) => gait(type, 0, 0, 0);
 export const pose  = ({ x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0 } = {}) =>
   `P ${r(x)} ${r(y)} ${r(z)} ${r(roll)} ${r(pitch)} ${r(yaw)}`;
 export const tune  = (stepH, cycleMs) => `B ${r(stepH)} ${r(cycleMs)}`;
-export const idle  = on => `D ${on ? 1 : 0}`;   // idle fidgets on/off
 
 // Multi-step actions: [{cmd, delay}] where delay is the pause before the next step (ms).
 export const standUp = () => [{ cmd: rest(), delay: 1500 }, { cmd: anim(0) }];
