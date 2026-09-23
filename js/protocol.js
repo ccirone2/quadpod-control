@@ -8,6 +8,8 @@ export const GAITS = [{ id: GAIT.CREEP, label: 'creep' }, { id: GAIT.TROT, label
 
 // Full-scale velocities at 100 % speed.
 export const SPEED = { MAX_MM_S: 40, MAX_DEG_S: 30 };
+// Stride length (mm) for the step-size slider; the firmware adapts the cadence (U command).
+export const STRIDE = { MIN: 10, MAX: 50, DEFAULT: 30 };
 
 export const ANIMS = ['stand', 'sit', 'rest', 'wave', 'bow', 'pushup', 'stretch', 'lie', 'highfive',
   'wiggle', 'leglift', 'look', 'sway', 'bounce', 'twist', 'ball', 'splay',
@@ -36,6 +38,7 @@ export const stopGait = (type = GAIT.STOP) => gait(type, 0, 0, 0);
 export const pose  = ({ x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0 } = {}) =>
   `P ${r(x)} ${r(y)} ${r(z)} ${r(roll)} ${r(pitch)} ${r(yaw)}`;
 export const tune  = (stepH, cycleMs) => `B ${r(stepH)} ${r(cycleMs)}`;
+export const stride = mm => `U ${r(mm)}`;
 
 // Multi-step actions: [{cmd, delay}] where delay is the pause before the next step (ms).
 export const estop   = () => [{ cmd: stopGait(), delay: 0 }, { cmd: off() }];

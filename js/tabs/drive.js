@@ -1,5 +1,6 @@
 // Drive tab: proportional joystick (up/down = vx, left/right = wz, diagonals blend into an arc),
-// strafe slider (vy, recentres on release), speed limiter, gait choice.
+// strafe slider (vx, recentres on release), step-size slider (stride mm, U command), gait choice.
+// Stick distance from centre is the only speed control.
 import * as P from '../protocol.js';
 import { h, card, slider, segmented, throttle } from '../ui.js';
 
@@ -11,13 +12,15 @@ export default {
   icon: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
 
   mount(root, ctx) {
-    const s = { gait: P.GAIT.CREEP, speed: 0.75, sx: 0, sy: 0, strafe: 0, active: false, timer: null };
+    let stride = P.STRIDE.DEFAULT;
+    try { stride = +localStorage.getItem('quadpod.stride') || stride; } catch {}
+    const s = { gait: P.GAIT.CREEP, sx: 0, sy: 0, strafe: 0, active: false, timer: null };
     const readout = { vx: h('b', {}, '0'), vy: h('b', {}, '0'), wz: h('b', {}, '0') };
 
     const velocity = () => ({
-      vx: s.strafe * P.SPEED.MAX_MM_S * s.speed,    // body x is right: slider right = strafe right
-      vy: s.sy * P.SPEED.MAX_MM_S * s.speed,        // body y is forward: stick up = forward
-      wz: -s.sx * P.SPEED.MAX_DEG_S * s.speed,      // stick right = turn right (clockwise = negative wz)
+      vx: s.strafe * P.SPEED.MAX_MM_S,    // body x is right: slider right = strafe right
+      vy: s.sy * P.SPEED.MAX_MM_S,        // body y is forward: stick up = forward
+      wz: -s.sx * P.SPEED.MAX_DEG_S,      // stick right = turn right (clockwise = negative wz)
     });
     const show = ({ vx, vy, wz }) => { readout.vx.textContent = Math.round(vx); readout.vy.textContent = Math.round(vy); readout.wz.textContent = Math.round(wz); };
 
@@ -27,7 +30,7 @@ export default {
     // Something is being touched: send now and keep resending until everything is released.
     const update = () => {
       const moving = s.sx || s.sy || s.strafe;
-      if (moving && !s.active) { s.active = true; push(false); s.timer = setInterval(() => push(true), RESEND_MS * 2); }
+      if (moving && !s.active) { s.active = true; ctx.send(P.stride(stride), { quiet: true }); push(false); s.timer = setInterval(() => push(true), RESEND_MS * 2); }
       else if (moving) pushThrottled();
       else stop();
     };
@@ -73,12 +76,16 @@ export default {
       onRelease: () => { strafeSl.set(0); s.strafe = 0; update(); } });
     const stopBtn = h('button', { class: 'btn soft needs-link', onclick: () => { releaseStick(); stop(); ctx.send(P.stopGait()); } }, 'stop');
 
-    // --- speed and gait ---
-    const speed = slider('speed', { min: 25, max: 100, value: 75, format: v => v + '%', onInput: v => { s.speed = v / 100; if (s.active) pushThrottled(); } });
+    // --- step size and gait ---
+    const sendStride = throttle(() => ctx.send(P.stride(stride), { quiet: true }), RESEND_MS);
+    const step = slider('step', { min: P.STRIDE.MIN, max: P.STRIDE.MAX, value: stride, format: v => v + ' mm', onInput: v => {
+      stride = v; try { localStorage.setItem('quadpod.stride', v); } catch {}
+      sendStride();
+    } });
     const gaitSeg = segmented(P.GAITS, s.gait, id => { s.gait = id; if (s.active) push(false); });
 
     root.append(
-      card('Drive', 'move the stick to walk',
+      card('Drive', 'stick = speed and direction, step = stride length',
         h('div', { class: 'needs-link' },
           stick,
           h('div', { class: 'drive-row' }, strafeSl.el, stopBtn),
@@ -86,7 +93,7 @@ export default {
             h('span', {}, 'vx ', readout.vx), h('span', {}, 'vy ', readout.vy), h('span', {}, 'wz ', readout.wz)),
         )),
       card('Settings', null,
-        h('div', { class: 'needs-link' }, speed.el, h('div', { style: 'margin-top:8px' }, gaitSeg.el))),
+        h('div', { class: 'needs-link' }, step.el, h('div', { style: 'margin-top:8px' }, gaitSeg.el))),
     );
 
     this.halt = () => { releaseStick(); stop(); };
