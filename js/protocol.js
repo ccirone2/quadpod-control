@@ -11,7 +11,7 @@ export const SPEED = { MAX_MM_S: 40, MAX_DEG_S: 30 };
 
 export const ANIMS = ['stand', 'sit', 'rest', 'wave', 'bow', 'pushup', 'stretch', 'lie', 'highfive',
   'wiggle', 'leglift', 'look', 'sway', 'bounce', 'twist', 'ball', 'splay',
-  'breathe', 'shiver', 'circle', 'peek', 'stomp', 'scratch', 'point', 'dig', 'kick', 'scrape'].map((label, id) => ({ id, label }));
+  'breathe', 'circle', 'peek', 'scratch', 'point', 'dig', 'kick', 'scrape', 'splash'].map((label, id) => ({ id, label }));
 
 export const help  = () => '?';
 export const engine = () => 'E';
