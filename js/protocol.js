@@ -24,11 +24,11 @@ export const query = () => 'Q';
 export const anim  = id => `A ${r(id)}`;
 // Idle fidgets: the robot plays these by itself; not shown on the page (they are meant as a surprise).
 export const HIDDEN = ['breathe', 'look', 'scratch', 'sway', 'stretch', 'scrape'];
-// Whole-body postures: shown on the Pose tab next to Home / Rest / Stand up, not in the animation grid.
-export const POSTURES = ['sit', 'ball', 'splay'];
+// Whole-body postures: shown on the Pose tab, not in the animation grid. Standing is home() (H).
+export const POSTURES = ['stand', 'sit', 'lie', 'ball', 'splay'];
 const byName = name => anim(ANIMS.find(a => a.label === name).id);
-export const standUp = () => byName('stand');   // the stand animation: from any posture to standing
 export const sit   = () => byName('sit');
+export const lie   = () => byName('lie');
 export const ball  = () => byName('ball');
 export const splay = () => byName('splay');
 export const gait  = (type, vx = 0, vy = 0, wz = 0) => `G ${r(type)} ${r(vx)} ${r(vy)} ${r(wz)}`;

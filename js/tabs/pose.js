@@ -1,5 +1,5 @@
-// Pose tab: whole-body poses (stand up, home, rest, sit, ball, splay), then body height / roll / pitch / yaw
-// sliders (feet stay planted), x/y shift under "more", and named slider presets.
+// Pose tab: one Poses card (whole-body postures, then standing body presets), and the body height / roll /
+// pitch / yaw sliders (feet stay planted) with x/y shift under "more".
 import * as P from '../protocol.js';
 import { h, card, slider, throttle } from '../ui.js';
 
@@ -13,18 +13,17 @@ const EXTRA = [
   { key: 'x', label: 'shift x', min: -20, max: 20 },
   { key: 'y', label: 'shift y', min: -20, max: 20 },
 ];
-// Whole-body poses. Stand up is the stand animation; the rest are one-shot postures.
+// Whole-body postures (each one resets the sliders to zero). Stand is the H command: home stance, level.
 const POSES = [
-  { label: 'Stand up', cmd: P.standUp, primary: true },
-  { label: 'Home',  cmd: P.home },
+  { label: 'Stand', cmd: P.home, primary: true },
   { label: 'Rest',  cmd: P.rest },
   { label: 'Sit',   cmd: P.sit },
+  { label: 'Lie',   cmd: P.lie },
   { label: 'Ball',  cmd: P.ball },
   { label: 'Splay', cmd: P.splay },
 ];
-// Named body-pose presets for the sliders: add more here, they appear as chips.
+// Standing body-pose presets: set the sliders and send one P command. Add more here, they appear as chips.
 const PRESETS = [
-  { label: 'level',  pose: {} },
   { label: 'tall',   pose: { z: 25 } },
   { label: 'crouch', pose: { z: -25 } },
   { label: 'peek',   pose: { z: 10, pitch: -15 } },
@@ -45,17 +44,18 @@ export default {
       send.cancel(); ctx.send(P.pose(cur));
     };
 
+    const reset = () => { for (const k in cur) { cur[k] = 0; sliders[k].set(0); } send.cancel(); };
+
     root.append(
       card('Poses', null,
         h('div', { class: 'grid tight needs-link' },
-          POSES.map(p => h('button', { class: 'btn' + (p.primary ? '' : ' soft'), onclick: () => ctx.send(p.cmd()) }, p.label)))),
+          POSES.map(p => h('button', { class: 'btn' + (p.primary ? '' : ' soft'), onclick: () => { reset(); ctx.send(p.cmd()); } }, p.label))),
+        h('div', { class: 'chips needs-link', style: 'margin-top:10px' },
+          PRESETS.map(p => h('button', { class: 'btn soft', onclick: () => apply(p.pose) }, p.label)))),
       card('Body pose', 'feet stay planted',
         h('div', { class: 'needs-link' },
           AXES.map(make),
           h('details', {}, h('summary', {}, 'more'), EXTRA.map(make)))),
-      card('Presets', null,
-        h('div', { class: 'chips needs-link' },
-          PRESETS.map(p => h('button', { class: 'btn soft', onclick: () => apply(p.pose) }, p.label)))),
     );
   },
 };
