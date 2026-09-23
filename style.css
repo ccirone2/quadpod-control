@@ -115,7 +115,8 @@ details summary { font-size: 13px; color: var(--muted); cursor: pointer; margin:
   transition: transform .12s ease-out; z-index: 1;
 }
 .joystick.live .knob { transition: none; }
-.drive-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin-top: 8px; }
+.drive-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-top: 8px; }
+.drive-row .slider { margin: 0; }
 .drive-row .btn { padding: 14px 10px; }
 
 /* ---- console ---- */

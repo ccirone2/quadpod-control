@@ -1,6 +1,7 @@
-// Drive tab: proportional joystick (vx, vy), hold-to-turn buttons (wz), speed limiter, gait choice.
+// Drive tab: proportional joystick (up/down = vx, left/right = wz, diagonals blend into an arc),
+// strafe slider (vy, recentres on release), speed limiter, gait choice.
 import * as P from '../protocol.js';
-import { h, card, holdButton, slider, segmented, throttle } from '../ui.js';
+import { h, card, slider, segmented, throttle } from '../ui.js';
 
 const RESEND_MS = 100;   // keep sending while touched (future firmware watchdog), throttle stick updates
 const DEAD = 0.10;       // stick dead zone, fraction of radius
@@ -10,13 +11,13 @@ export default {
   icon: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
 
   mount(root, ctx) {
-    const s = { gait: P.GAIT.CREEP, speed: 0.75, sx: 0, sy: 0, turn: 0, active: false, timer: null };
+    const s = { gait: P.GAIT.CREEP, speed: 0.75, sx: 0, sy: 0, strafe: 0, active: false, timer: null };
     const readout = { vx: h('b', {}, '0'), vy: h('b', {}, '0'), wz: h('b', {}, '0') };
 
     const velocity = () => ({
-      vx: s.sx * P.SPEED.MAX_MM_S * s.speed,
-      vy: s.sy * P.SPEED.MAX_MM_S * s.speed,
-      wz: s.turn * P.SPEED.MAX_DEG_S * s.speed,
+      vx: s.strafe * P.SPEED.MAX_MM_S * s.speed,    // body x is right: slider right = strafe right
+      vy: s.sy * P.SPEED.MAX_MM_S * s.speed,        // body y is forward: stick up = forward
+      wz: -s.sx * P.SPEED.MAX_DEG_S * s.speed,      // stick right = turn right (clockwise = negative wz)
     });
     const show = ({ vx, vy, wz }) => { readout.vx.textContent = Math.round(vx); readout.vy.textContent = Math.round(vy); readout.wz.textContent = Math.round(wz); };
 
@@ -25,14 +26,14 @@ export default {
 
     // Something is being touched: send now and keep resending until everything is released.
     const update = () => {
-      const moving = s.sx || s.sy || s.turn;
+      const moving = s.sx || s.sy || s.strafe;
       if (moving && !s.active) { s.active = true; push(false); s.timer = setInterval(() => push(true), RESEND_MS * 2); }
       else if (moving) pushThrottled();
       else stop();
     };
     const stop = () => {
       pushThrottled.cancel(); clearInterval(s.timer); s.timer = null;
-      s.sx = s.sy = s.turn = 0; show(velocity());
+      s.sx = s.sy = s.strafe = 0; strafeSl?.set(0); show(velocity());
       if (s.active) { s.active = false; ctx.send(P.stopGait(s.gait)); }
     };
 
@@ -66,15 +67,11 @@ export default {
     for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) stick.addEventListener(ev, e => { if (e.pointerId === pid) releaseStick(); });
     stick.addEventListener('contextmenu', e => e.preventDefault());
 
-    // --- turn buttons ---
-    const turnBtn = (label, dir) => {
-      const b = h('button', { class: 'btn soft needs-link' }, label);
-      const release = holdButton(b, () => { s.turn = dir; update(); }, () => { if (s.turn === dir) { s.turn = 0; update(); } });
-      b.release = release;
-      return b;
-    };
-    const left = turnBtn('↺ turn', 1), right = turnBtn('turn ↻', -1);
-    const stopBtn = h('button', { class: 'btn soft needs-link', onclick: () => { releaseStick(); left.release(); right.release(); stop(); ctx.send(P.stopGait()); } }, 'stop');
+    // --- strafe slider: recentres on release ---
+    const strafeSl = slider('strafe', { min: -100, max: 100, value: 0, format: v => v + '%',
+      onInput: v => { s.strafe = v / 100; update(); },
+      onRelease: () => { strafeSl.set(0); s.strafe = 0; update(); } });
+    const stopBtn = h('button', { class: 'btn soft needs-link', onclick: () => { releaseStick(); stop(); ctx.send(P.stopGait()); } }, 'stop');
 
     // --- speed and gait ---
     const speed = slider('speed', { min: 25, max: 100, value: 75, format: v => v + '%', onInput: v => { s.speed = v / 100; if (s.active) pushThrottled(); } });
@@ -84,7 +81,7 @@ export default {
       card('Drive', 'move the stick to walk',
         h('div', { class: 'needs-link' },
           stick,
-          h('div', { class: 'drive-row' }, left, stopBtn, right),
+          h('div', { class: 'drive-row' }, strafeSl.el, stopBtn),
           h('div', { class: 'readout' },
             h('span', {}, 'vx ', readout.vx), h('span', {}, 'vy ', readout.vy), h('span', {}, 'wz ', readout.wz)),
         )),
@@ -92,7 +89,7 @@ export default {
         h('div', { class: 'needs-link' }, speed.el, h('div', { style: 'margin-top:8px' }, gaitSeg.el))),
     );
 
-    this.halt = () => { releaseStick(); left.release(); right.release(); stop(); };
+    this.halt = () => { releaseStick(); stop(); };
   },
 
   onLeave() { this.halt?.(); },
