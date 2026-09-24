@@ -7,7 +7,7 @@ const QUICK = [['?', P.help()], ['L', P.listCal()], ['Q', P.query()], ['H', P.ho
 const HISTORY = 20;
 
 export default {
-  id: 'console', label: 'Console',
+  id: 'console', label: 'Console', dev: true,
   icon: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10l3 2-3 2M12 14h5"/>',
 
   mount(root, ctx) {

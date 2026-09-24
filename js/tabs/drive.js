@@ -90,8 +90,8 @@ export default {
         h('div', { class: 'needs-link' },
           stick,
           h('div', { class: 'drive-row' }, strafeSl.el),
-          h('div', { class: 'readout' },
-            h('span', {}, 'vx ', readout.vx), h('span', {}, 'vy ', readout.vy), h('span', {}, 'wz ', readout.wz)),
+          ctx.dev ? h('div', { class: 'readout' },      // developer mode only
+            h('span', {}, 'vx ', readout.vx), h('span', {}, 'vy ', readout.vy), h('span', {}, 'wz ', readout.wz)) : null,
         )),
       card('Settings', null,
         h('div', { class: 'needs-link' }, step.el, h('div', { class: 'mt' }, gaitSeg.el))),

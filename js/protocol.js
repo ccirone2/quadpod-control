@@ -14,17 +14,24 @@ export const STRIDE = { MIN: 10, MAX: 50, DEFAULT: 30 };
 // watchdog zeroes the velocity after 1.5 s of silence, so a held stick resends well inside that.
 export const RESEND_MS = 100;
 
-// Animation ids = position in this list (mirror of Anim::Id in quadpod/animation.h).
-export const ANIMS = ['stand', 'sit', 'rest', 'wave', 'bow', 'pushup', 'stretch', 'lie', 'highfive',
-  'wiggle', 'leglift', 'look', 'sway', 'bounce', 'twist', 'ball', 'splay',
-  'breathe', 'circle', 'peek', 'scratch', 'point', 'kick', 'scrape', 'splash', 'crack'].map((label, id) => ({ id, label }));
+// Animation ids = position in this list (mirror of Anim::Id in quadpod/animation.h). name is the firmware's
+// name (it reports "animation: <name> (<id>)"), label is what the player sees.
+export const ANIMS = [
+  ['stand', 'Stand'], ['sit', 'Sit'], ['rest', 'Rest'], ['wave', 'Wave'], ['bow', 'Bow'],
+  ['pushup', 'Push-ups'], ['stretch', 'Stretch'], ['lie', 'Lie down'], ['highfive', 'High five'],
+  ['wiggle', 'Wiggle'], ['leglift', 'Leg lift'], ['look', 'Look around'], ['sway', 'Sway'],
+  ['bounce', 'Bounce'], ['twist', 'Twist'], ['ball', 'Ball'], ['splay', 'Splay'], ['breathe', 'Breathe'],
+  ['circle', 'Circle'], ['peek', 'Peek'], ['scratch', 'Scratch'], ['point', 'Point'], ['kick', 'Kick'],
+  ['scrape', 'Scrape'], ['splash', 'Splash'], ['crack', 'Crack'],
+].map(([name, label], id) => ({ id, name, label }));
+export const animLabel = name => ANIMS.find(a => a.name === name)?.label ?? name;
 // Whole-body postures: shown on the Pose tab, not in the animation grid. Stand is home() (H), rest is rest() (R).
 export const POSTURES = ['stand', 'sit', 'rest', 'lie', 'ball', 'splay'];
 // Idle fidgets (IDLE_SET in animation.cpp): the robot plays these by itself; not shown on the page (a surprise).
 export const HIDDEN = ['breathe', 'look', 'scratch', 'sway', 'stretch', 'scrape', 'crack'];
 
 const r = v => Math.round(v);
-const byName = name => anim(ANIMS.find(a => a.label === name).id);
+const byName = name => anim(ANIMS.find(a => a.name === name).id);
 
 // ---- general ----
 export const help  = () => '?';

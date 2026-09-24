@@ -4,15 +4,16 @@ import * as P from '../protocol.js';
 import { h, card, slider, throttle, store } from '../ui.js';
 
 // Ranges cover the legs' reach from the 60 mm standing height (the firmware IK clamps anything beyond).
+// Player labels: Lean = roll (side down), Tilt = pitch (+ nose up), Turn = yaw; Sideways = x, Forward = y.
 const AXES = [
   { key: 'z',     label: 'Height', min: -35, max: 45 },
-  { key: 'roll',  label: 'Roll',   min: -40, max: 40 },
-  { key: 'pitch', label: 'Pitch',  min: -40, max: 40 },
-  { key: 'yaw',   label: 'Yaw',    min: -45, max: 45 },
+  { key: 'roll',  label: 'Lean',   min: -40, max: 40 },
+  { key: 'pitch', label: 'Tilt',   min: -40, max: 40 },
+  { key: 'yaw',   label: 'Turn',   min: -45, max: 45 },
 ];
 const EXTRA = [
-  { key: 'x', label: 'Shift x', min: -35, max: 35 },
-  { key: 'y', label: 'Shift y', min: -35, max: 35 },
+  { key: 'x', label: 'Sideways', min: -35, max: 35 },
+  { key: 'y', label: 'Forward',  min: -35, max: 35 },
 ];
 // Whole-body postures (each one resets the sliders to zero). Stand is the H command: home stance, level.
 const POSES = [

@@ -1,7 +1,7 @@
 // App shell: header (status, connect, STOP), tab registry and bottom nav, shared log buffer, toasts,
 // and a screen wake lock while connected (a sleeping phone would otherwise stop a walk silently).
-// To add a feature: create js/tabs/<name>.js exporting {id, label, icon, mount(root, ctx), onLeave?, onHidden?}
-// and add it to TABS.
+// To add a feature: create js/tabs/<name>.js exporting {id, label, icon, mount(root, ctx), onLeave?, onHidden?,
+// dev?} and add it to TABS. dev: true tabs only show in developer mode (long-press the title for DEV_HOLD_MS).
 import { Link } from './ble.js';
 import * as P from './protocol.js';
 import { h, store } from './ui.js';
@@ -17,6 +17,7 @@ const $ = s => document.querySelector(s);
 const link = new Link();
 const view = $('#view'), nav = $('#tabs'), dot = $('#dot'), status = $('#status'), connectBtn = $('#connect');
 const TOAST_MS = 3500;
+const DEV_HOLD_MS = 1000;
 
 // ---- toast: every error and link event, so nothing important hides in the Console log ----
 const toastEl = h('div', { id: 'toast', role: 'status', 'aria-live': 'polite' });
@@ -52,24 +53,54 @@ function log(text, cls) {
 }
 const send = (cmd, opts) => link.send(cmd, opts);
 
+// ---- what the robot is doing: its own "animation: <name> (<id>)" / "animation: done" replies ----
+let playing = null;
+const playSubs = new Set();
+function setPlaying(name) {
+  if (name === playing) return;
+  playing = name;
+  showStatus();
+  for (const fn of playSubs) fn(playing);
+}
+
+// ---- developer mode: the Console tab and raw numbers; off for players ----
+let dev = store.get('dev') === '1';
+
 const ctx = {
   link, send, log,
+  get dev() { return dev; },
+  playing: () => playing,
+  onPlaying: fn => { playSubs.add(fn); return () => playSubs.delete(fn); },
   entries: () => entries,
   clearLog: () => { entries.length = 0; for (const fn of logSubs) fn(); },
   onLog: fn => { logSubs.add(fn); return () => logSubs.delete(fn); },
 };
 
+// ---- header status line ----
+let linkState = { state: 'off', name: 'quadpod', reconnecting: false };
+function showStatus() {
+  const { state, name, reconnecting } = linkState;
+  status.textContent = state === 'on' ? (playing ? 'playing ' + P.animLabel(playing) : 'connected to ' + name)
+    : state === 'busy' ? (reconnecting ? 'reconnecting…' : 'connecting…') : 'not connected';
+}
+
 // ---- link events ----
 link.addEventListener('tx', e => log('> ' + e.detail.text, 'tx'));
-link.addEventListener('line', e => log('< ' + e.detail.text, e.detail.text.startsWith('error:') ? 'err' : undefined));
+link.addEventListener('line', e => {
+  const text = e.detail.text;
+  log('< ' + text, text.startsWith('error:') ? 'err' : undefined);
+  const m = /^animation: (\w+)/.exec(text);
+  if (m) setPlaying(m[1] === 'done' ? null : m[1]);
+});
 link.addEventListener('error', e => { log(e.detail.text, 'err'); toast(e.detail.text, 'err'); });
 link.addEventListener('info', e => { log(e.detail.text, 'sys'); toast(e.detail.text); });
 let wasOn = false;
 link.addEventListener('state', e => {
-  const { state, name, reconnecting } = e.detail;
+  const { state, name } = e.detail;
+  linkState = e.detail;
+  if (state !== 'on') setPlaying(null);           // unknown until the robot reports again
+  showStatus();
   dot.className = 'dot' + (state === 'on' ? ' on' : state === 'busy' ? ' busy' : '');
-  status.textContent = state === 'on' ? 'connected to ' + name
-    : state === 'busy' ? (reconnecting ? 'reconnecting…' : 'connecting…') : 'not connected';
   connectBtn.textContent = state === 'on' ? 'Disconnect' : 'Connect';
   connectBtn.disabled = state === 'busy';
   view.dataset.locked = state === 'on' ? 'false' : 'true';
@@ -102,16 +133,17 @@ estop.addEventListener('click', () => {
 
 // ---- tabs ----
 let current = null;
-function show(id) {
-  const tab = TABS.find(t => t.id === id) || TABS[0];
-  if (tab === current) return;
+const visible = () => TABS.filter(t => dev || !t.dev);
+function show(id, remount = false) {
+  const tab = visible().find(t => t.id === id) || TABS[0];
+  if (tab === current && !remount) return;
   current?.onLeave?.();
   current = tab;
   view.replaceChildren();
   view.scrollTop = 0;
   tab.mount(view, ctx);
   for (const b of nav.children) b.classList.toggle('on', b.dataset.id === tab.id);
-  store.set('tab', tab.id);
+  if (!tab.dev) store.set('tab', tab.id);         // a developer tab is never the landing tab
 }
 function icon(paths) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -119,7 +151,24 @@ function icon(paths) {
   svg.innerHTML = paths;
   return svg;
 }
-for (const t of TABS) nav.append(h('button', { 'data-id': t.id, onclick: () => show(t.id) }, icon(t.icon), t.label));
+function buildNav() {
+  nav.replaceChildren(...visible().map(t => h('button', { 'data-id': t.id, onclick: () => show(t.id) }, icon(t.icon), t.label)));
+}
+function setDev(on) {
+  dev = on;
+  store.set('dev', on ? '1' : '0');
+  buildNav();
+  show(current?.id, true);                         // remount: the tab may show more or less; a dev tab falls back
+  toast(on ? 'Developer mode on' : 'Developer mode off');
+}
+buildNav();
+
+// Long-press the title to toggle developer mode.
+const title = $('#top h1');
+let devTimer = null;
+title.addEventListener('pointerdown', () => { devTimer = setTimeout(() => setDev(!dev), DEV_HOLD_MS); });
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) title.addEventListener(ev, () => clearTimeout(devTimer));
+title.addEventListener('contextmenu', e => e.preventDefault());
 
 const first = store.get('tab', TABS[0].id);
 view.dataset.locked = 'true';

@@ -21,9 +21,6 @@ export function h(tag, attrs = {}, ...children) {
   return el;
 }
 
-// Display label from a protocol name: 'highfive' -> 'Highfive'.
-export const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-
 // Trailing-edge throttle: the latest call runs at most once per `ms`.
 export function throttle(fn, ms) {
   let timer = null, pending = null;
