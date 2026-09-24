@@ -1,4 +1,5 @@
-// App shell: header (status, connect, STOP), tab registry and bottom nav, shared log buffer.
+// App shell: header (status, connect, STOP), tab registry and bottom nav, shared log buffer, toasts,
+// and a screen wake lock while connected (a sleeping phone would otherwise stop a walk silently).
 // To add a feature: create js/tabs/<name>.js exporting {id, label, icon, mount(root, ctx), onLeave?, onHidden?}
 // and add it to TABS.
 import { Link } from './ble.js';
@@ -15,6 +16,29 @@ const LOG_MAX = 300;
 const $ = s => document.querySelector(s);
 const link = new Link();
 const view = $('#view'), nav = $('#tabs'), dot = $('#dot'), status = $('#status'), connectBtn = $('#connect');
+const TOAST_MS = 3500;
+
+// ---- toast: every error and link event, so nothing important hides in the Console log ----
+const toastEl = h('div', { id: 'toast', role: 'status', 'aria-live': 'polite' });
+document.body.append(toastEl);
+let toastTimer = null;
+function toast(text, cls = '') {
+  toastEl.textContent = text;
+  toastEl.className = 'show ' + cls;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastEl.className = cls; }, TOAST_MS);
+}
+
+// ---- wake lock: held while connected and visible; the browser drops it when the page is hidden ----
+let wake = null;
+async function holdWake() {
+  if (wake || !link.connected || document.hidden || !navigator.wakeLock) return;
+  try {
+    wake = await navigator.wakeLock.request('screen');
+    wake.addEventListener('release', () => { wake = null; });
+  } catch {}
+}
+function dropWake() { wake?.release().catch(() => {}); wake = null; }
 
 // ---- shared log buffer (survives tab switches) ----
 const entries = [];
@@ -38,16 +62,21 @@ const ctx = {
 // ---- link events ----
 link.addEventListener('tx', e => log('> ' + e.detail.text, 'tx'));
 link.addEventListener('line', e => log('< ' + e.detail.text, e.detail.text.startsWith('error:') ? 'err' : undefined));
-link.addEventListener('error', e => log(e.detail.text, 'err'));
+link.addEventListener('error', e => { log(e.detail.text, 'err'); toast(e.detail.text, 'err'); });
+link.addEventListener('info', e => { log(e.detail.text, 'sys'); toast(e.detail.text); });
+let wasOn = false;
 link.addEventListener('state', e => {
-  const { state, name } = e.detail;
+  const { state, name, reconnecting } = e.detail;
   dot.className = 'dot' + (state === 'on' ? ' on' : state === 'busy' ? ' busy' : '');
-  status.textContent = state === 'on' ? 'connected to ' + name : state === 'busy' ? 'connecting…' : 'not connected';
+  status.textContent = state === 'on' ? 'connected to ' + name
+    : state === 'busy' ? (reconnecting ? 'reconnecting…' : 'connecting…') : 'not connected';
   connectBtn.textContent = state === 'on' ? 'Disconnect' : 'Connect';
   connectBtn.disabled = state === 'busy';
   view.dataset.locked = state === 'on' ? 'false' : 'true';
-  if (state === 'on') log('connected to ' + name, 'sys');
-  else if (state === 'off') { current?.onHidden?.(); log('disconnected', 'sys'); }
+  if (state === 'on') { log('connected to ' + name, 'sys'); holdWake(); }
+  else if (wasOn) current?.onHidden?.();          // link down or reconnecting: stop every continuous control
+  if (state === 'off') { dropWake(); if (wasOn) log('disconnected', 'sys'); }
+  wasOn = state === 'on';
 });
 connectBtn.addEventListener('click', () => link.connected ? link.disconnect() : link.connect());
 
@@ -61,14 +90,14 @@ estop.addEventListener('pointerdown', () => {
   heldOff = false; estop.classList.add('arming');
   armTimer = setTimeout(() => {
     disarm(); heldOff = true;
-    current?.onHidden?.(); send(P.off()); log('STOP held: servos off', 'sys');
+    current?.onHidden?.(); send(P.off(), { urgent: true }); log('STOP held: servos off', 'sys');
   }, HOLD_OFF_MS);
 });
 for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) estop.addEventListener(ev, disarm);
 estop.addEventListener('contextmenu', e => e.preventDefault());
 estop.addEventListener('click', () => {
   if (heldOff) { heldOff = false; return; }   // the long press already powered off
-  current?.onHidden?.(); send(P.halt());
+  current?.onHidden?.(); send(P.halt(), { urgent: true });
 });
 
 // ---- tabs ----
@@ -96,5 +125,5 @@ const first = store.get('tab', TABS[0].id);
 view.dataset.locked = 'true';
 show(first);
 
-document.addEventListener('visibilitychange', () => { if (document.hidden) current?.onHidden?.(); });
-if (!link.supported) log('Web Bluetooth is not available in this browser', 'err');
+document.addEventListener('visibilitychange', () => { if (document.hidden) current?.onHidden?.(); else holdWake(); });
+if (!link.supported) { log('Web Bluetooth is not available in this browser', 'err'); toast('Web Bluetooth is not available in this browser', 'err'); }

@@ -1,7 +1,9 @@
 # Quadpod control page
 
 Bluetooth control page for the quadpod robot. Open it in Chrome on Android, press **Connect** and pick
-the device named "quadpod". Uses Web Bluetooth with the Nordic UART Service, so it must be served over
+the device named "quadpod". Later connects reuse that device without the chooser where Chrome supports
+it, a dropped link is retried automatically, errors show as a toast, and the screen stays awake while
+connected. Uses Web Bluetooth with the Nordic UART Service, so it must be served over
 https (GitHub Pages) or from an origin allowed by the Chrome flag below.
 
 Live: https://ccirone2.github.io/quadpod-control/
@@ -14,7 +16,7 @@ a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), ho
 
 | Tab     | What it does |
 |---------|--------------|
-| Drive   | Proportional joystick (up/down forward/back, left/right rotate, diagonals arc), Strafe slider that recentres on release, Step slider (stride mm; the firmware adapts the cadence), Creep/Trot |
+| Drive   | Proportional joystick (up/down forward/back, left/right rotate, diagonals arc; release to stop), Strafe slider that recentres on release, Step slider (stride mm; the firmware adapts the cadence), Creep/Trot |
 | Pose    | Poses card: postures (Stand, Rest, Sit, Lie, Ball, Splay) plus standing presets (Tall, Crouch, Peek, Lean); Body pose card: height / roll / pitch / yaw sliders, x/y shift under More, Snap back toggle (default on) returns a slider to centre on release and centres everything when switched on |
 | Actions | Every animation except the postures (on the Pose tab) and the idle fidgets (hidden on purpose), plus Play all (demo) |
 | Console | Reply log, raw command line with history, quick commands |
@@ -25,7 +27,8 @@ a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), ho
 index.html         shell only
 style.css          tokens (light + dark), layout, shared components
 js/app.js          tab registry, header wiring, shared log buffer
-js/ble.js          Link: Web Bluetooth NUS transport (events: state, line, tx, error)
+js/ble.js          Link: Web Bluetooth NUS transport, remembered device, auto-reconnect, send queue
+                   (events: state, line, tx, error, info)
 js/protocol.js     tables (GAITS, SPEED, STRIDE, RESEND_MS, ANIMS, POSTURES, HIDDEN), then one builder per command in protocol group order
 js/ui.js           DOM helpers: h(), store, cap(), throttle(), slider(), segmented(), card()
 js/tabs/*.js       one module per tab
@@ -46,7 +49,9 @@ export default {
 };
 ```
 
-`ctx` gives you `send(cmd, {quiet})`, `log(text, cls)`, `link`, and the log buffer helpers. Add the module
+`ctx` gives you `send(cmd, {quiet, key, urgent})`, `log(text, cls)`, `link`, and the log buffer helpers.
+Give continuous controls a `key` (one per stream, e.g. `'drive'`): a newer line replaces an unsent older
+one instead of queueing behind it. `urgent` is for STOP-like lines only. Add the module
 to `TABS` in `js/app.js`. Mark controls that need a connection with class `needs-link` and they dim until
 connected. New commands go in `js/protocol.js` under their protocol group; new postures in `POSES` and new
 standing presets in `PRESETS`, both in `js/tabs/pose.js`. Conventions: sentence-case labels, `store.get/set`

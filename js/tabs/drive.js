@@ -23,22 +23,22 @@ export default {
     });
     const show = ({ vx, vy, wz }) => { readout.vx.textContent = Math.round(vx); readout.vy.textContent = Math.round(vy); readout.wz.textContent = Math.round(wz); };
 
-    const push = quiet => { const v = velocity(); show(v); ctx.send(P.gait(s.gait, v.vx, v.vy, v.wz), { quiet }); };
+    const push = quiet => { const v = velocity(); show(v); ctx.send(P.gait(s.gait, v.vx, v.vy, v.wz), { quiet, key: 'drive' }); };
     const pushThrottled = throttle(() => push(true), RESEND_MS);
 
     // Something is being touched: send now and keep resending until everything is released.
     const update = () => {
       const moving = s.sx || s.sy || s.strafe;
-      if (moving && !s.active) { s.active = true; ctx.send(P.stride(stride), { quiet: true }); push(false); s.timer = setInterval(() => push(true), RESEND_MS * 2); }
+      if (moving && !s.active) { s.active = true; ctx.send(P.stride(stride), { quiet: true, key: 'stride' }); push(false); s.timer = setInterval(() => push(true), RESEND_MS * 2); }
       else if (moving) pushThrottled();
       else stop();
     };
-    // Zero everything. A released stick keeps the gait engaged at zero speed (G <gait> 0 0 0);
-    // leave = true sends one G 0 that exits the gait, even when no walk was active.
-    const stop = (leave = false) => {
+    // Zero everything. A released stick keeps the gait engaged at zero speed (G <gait> 0 0 0); the header
+    // STOP (or any posture) leaves the gait.
+    const stop = () => {
       pushThrottled.cancel(); clearInterval(s.timer); s.timer = null;
       s.sx = s.sy = s.strafe = 0; strafeSl?.set(0); show(velocity());
-      if (s.active || leave) ctx.send(P.stopGait(leave ? P.GAIT.STOP : s.gait));
+      if (s.active) ctx.send(P.stopGait(s.gait), { key: 'drive' });
       s.active = false;
     };
 
@@ -76,10 +76,9 @@ export default {
     const strafeSl = slider('Strafe', { min: -100, max: 100, value: 0, format: v => v + '%',
       onInput: v => { s.strafe = v / 100; update(); },
       onRelease: () => { strafeSl.set(0); s.strafe = 0; update(); } });
-    const stopBtn = h('button', { class: 'btn soft needs-link', onclick: () => { stop(true); releaseStick(); } }, 'Stop');   // stop first so the release sends nothing
 
     // --- step size and gait ---
-    const sendStride = throttle(() => ctx.send(P.stride(stride), { quiet: true }), RESEND_MS);
+    const sendStride = throttle(() => ctx.send(P.stride(stride), { quiet: true, key: 'stride' }), RESEND_MS);
     const step = slider('Step', { min: P.STRIDE.MIN, max: P.STRIDE.MAX, value: stride, format: v => v + ' mm', onInput: v => {
       stride = v; store.set('stride', v);
       sendStride();
@@ -90,7 +89,7 @@ export default {
       card('Drive', 'stick = speed and direction, step = stride length',
         h('div', { class: 'needs-link' },
           stick,
-          h('div', { class: 'drive-row' }, strafeSl.el, stopBtn),
+          h('div', { class: 'drive-row' }, strafeSl.el),
           h('div', { class: 'readout' },
             h('span', {}, 'vx ', readout.vx), h('span', {}, 'vy ', readout.vy), h('span', {}, 'wz ', readout.wz)),
         )),

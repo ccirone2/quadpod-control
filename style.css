@@ -117,9 +117,18 @@ details summary { font-size: 13px; color: var(--muted); cursor: pointer; margin:
   transition: transform .12s ease-out; z-index: 1;
 }
 .joystick.live .knob { transition: none; }
-.drive-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-top: 8px; }
+.drive-row { margin-top: 8px; }
 .drive-row .slider { margin: 0; }
-.drive-row .btn { padding: 14px 10px; }
+
+/* ---- toast: above the bottom nav ---- */
+#toast {
+  position: fixed; left: 50%; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px); z-index: 10;
+  transform: translate(-50%, 8px); max-width: min(480px, calc(100vw - 32px)); padding: 10px 14px; border-radius: 10px;
+  background: var(--ink); color: var(--bg); font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast.err { background: var(--bad); color: #fff; }
 
 /* ---- console ---- */
 .log {

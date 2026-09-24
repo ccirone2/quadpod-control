@@ -39,7 +39,7 @@ export default {
     const cur = {};
     const sliders = {};
     let snap = store.get('snap') !== '0';
-    const send = throttle(() => ctx.send(P.pose(cur), { quiet: true }), P.RESEND_MS);
+    const send = throttle(() => ctx.send(P.pose(cur), { quiet: true, key: 'pose' }), P.RESEND_MS);
     const make = a => {
       cur[a.key] = 0;
       sliders[a.key] = slider(a.label, { ...a,
@@ -54,7 +54,7 @@ export default {
     } });
     const apply = pose => {
       for (const k in cur) { cur[k] = pose[k] || 0; sliders[k].set(cur[k]); }
-      send.cancel(); ctx.send(P.pose(cur));
+      send.cancel(); ctx.send(P.pose(cur), { key: 'pose' });
     };
 
     const reset = () => { for (const k in cur) { cur[k] = 0; sliders[k].set(0); } send.cancel(); };
