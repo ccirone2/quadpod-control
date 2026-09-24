@@ -13,7 +13,7 @@ export const STRIDE = { MIN: 10, MAX: 50, DEFAULT: 30 };
 
 export const ANIMS = ['stand', 'sit', 'rest', 'wave', 'bow', 'pushup', 'stretch', 'lie', 'highfive',
   'wiggle', 'leglift', 'look', 'sway', 'bounce', 'twist', 'ball', 'splay',
-  'breathe', 'circle', 'peek', 'scratch', 'point', 'kick', 'scrape', 'splash'].map((label, id) => ({ id, label }));
+  'breathe', 'circle', 'peek', 'scratch', 'point', 'kick', 'scrape', 'splash', 'crack'].map((label, id) => ({ id, label }));
 
 export const help  = () => '?';
 export const halt  = () => '!';   // stop and hold, servos stay powered (walking: feet planted at home)
@@ -25,7 +25,7 @@ export const listCal = () => 'L';
 export const query = () => 'Q';
 export const anim  = id => `A ${r(id)}`;
 // Idle fidgets: the robot plays these by itself; not shown on the page (they are meant as a surprise).
-export const HIDDEN = ['breathe', 'look', 'scratch', 'sway', 'stretch', 'scrape'];
+export const HIDDEN = ['breathe', 'look', 'scratch', 'sway', 'stretch', 'scrape', 'crack'];
 // Whole-body postures: shown on the Pose tab, not in the animation grid. Standing is home() (H).
 export const POSTURES = ['stand', 'sit', 'lie', 'ball', 'splay'];
 const byName = name => anim(ANIMS.find(a => a.label === name).id);
