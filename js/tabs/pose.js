@@ -27,7 +27,7 @@ const POSES = [
 // Standing body-pose presets: set the sliders and send one P command. Add more here, they appear as chips.
 const PRESETS = [
   { label: 'Tall',   pose: { z: 25 } },
-  { label: 'Crouch', pose: { z: -25 } },
+  { label: 'Crouch', pose: { z: 17, pitch: -40 } },   // nose right down
   { label: 'Peek',   pose: { z: 10, pitch: 15 } },   // +pitch = nose up, like the peek animation
   { label: 'Lean',   pose: { roll: 15 } },
 ];
