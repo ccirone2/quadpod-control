@@ -26,6 +26,7 @@ export const ANIMS = [
 ].map(([name, label], id) => ({ id, name, label }));
 export const animLabel = name => ANIMS.find(a => a.name === name)?.label ?? name;
 // Whole-body postures: shown on the Pose tab, not in the animation grid. Stand is home() (H), rest is rest() (R).
+// sit stays listed so the sit animation is kept off the grid; the Pose tab's Sit is a body-pose preset instead.
 export const POSTURES = ['stand', 'sit', 'rest', 'lie', 'ball', 'splay'];
 // Idle fidgets (IDLE_SET in animation.cpp): the robot plays these by itself; not shown on the page (a surprise).
 export const HIDDEN = ['breathe', 'look', 'scratch', 'sway', 'stretch', 'scrape', 'crack'];
@@ -49,7 +50,6 @@ export const pose  = ({ x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0 } = {}
 
 // ---- anim ----
 export const anim  = id => `A ${r(id)}`;
-export const sit   = () => byName('sit');
 export const lie   = () => byName('lie');
 export const ball  = () => byName('ball');
 export const splay = () => byName('splay');

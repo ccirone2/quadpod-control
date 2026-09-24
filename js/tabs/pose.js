@@ -19,13 +19,14 @@ const EXTRA = [
 const POSES = [
   { label: 'Stand', cmd: P.home, primary: true },
   { label: 'Rest',  cmd: P.rest },
-  { label: 'Sit',   cmd: P.sit },
   { label: 'Lie',   cmd: P.lie },
   { label: 'Ball',  cmd: P.ball },
   { label: 'Splay', cmd: P.splay },
 ];
-// Standing body-pose presets: set the sliders and send one P command. Add more here, they appear as chips.
+// Body-pose presets (feet planted): set the sliders and send one P command; unlisted axes go to 0. Add more
+// here, they appear as chips.
 const PRESETS = [
+  { label: 'Sit',    pose: { z: -35, pitch: 40 } },   // low, nose up: sitting on the tail
   { label: 'Tall',   pose: { z: 25 } },
   { label: 'Crouch', pose: { z: 17, pitch: -40 } },   // nose right down
   { label: 'Peek',   pose: { z: 10, pitch: 15 } },   // +pitch = nose up, like the peek animation

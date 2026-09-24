@@ -21,7 +21,7 @@ a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), ho
 | Tab     | What it does |
 |---------|--------------|
 | Drive   | Proportional joystick (up/down forward/back, left/right rotate, diagonals arc; release to stop), Strafe slider that recentres on release, Step slider (stride mm; the firmware adapts the cadence), Creep/Trot |
-| Pose    | Poses card: postures (Stand, Rest, Sit, Lie, Ball, Splay) plus standing presets (Tall, Crouch, Peek, Lean); Body pose card: Height / Lean (roll) / Tilt (pitch) / Turn (yaw) sliders, Sideways / Forward shift under More, Snap back toggle (default on) returns a slider to centre on release and centres everything when switched on |
+| Pose    | Poses card: postures (Stand, Rest, Lie, Ball, Splay) plus body-pose presets (Sit, Tall, Crouch, Peek, Lean); Body pose card: Height / Lean (roll) / Tilt (pitch) / Turn (yaw) sliders, Sideways / Forward shift under More, Snap back toggle (default on) returns a slider to centre on release and centres everything when switched on |
 | Actions | Every animation except the postures (on the Pose tab) and the idle fidgets (hidden on purpose), plus Play all (demo); highlights what the robot reports playing |
 | Console | Developer mode only (long-press the "Quadpod" title for 1 s). Reply log, raw command line with history, quick commands |
 
