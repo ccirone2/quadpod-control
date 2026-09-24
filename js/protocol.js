@@ -19,7 +19,7 @@ export const RESEND_MS = 100;
 export const ANIMS = [
   ['stand', 'Stand'], ['sit', 'Sit'], ['rest', 'Rest'], ['wave', 'Wave'], ['bow', 'Bow'],
   ['pushup', 'Push-ups'], ['stretch', 'Stretch'], ['lie', 'Lie down'], ['highfive', 'High five'],
-  ['wiggle', 'Wiggle'], ['leglift', 'Leg lift'], ['look', 'Look around'], ['sway', 'Sway'],
+  ['wiggle', 'Wiggle'], ['look', 'Look around'], ['sway', 'Sway'],
   ['bounce', 'Bounce'], ['twist', 'Twist'], ['ball', 'Ball'], ['splay', 'Splay'], ['breathe', 'Breathe'],
   ['circle', 'Circle'], ['peek', 'Peek'], ['scratch', 'Scratch'], ['point', 'Point'], ['kick', 'Kick'],
   ['scrape', 'Scrape'], ['splash', 'Splash'], ['crack', 'Crack'],
