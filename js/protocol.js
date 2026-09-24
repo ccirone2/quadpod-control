@@ -1,10 +1,10 @@
 // Command builders for the quadpod text protocol (see quadpod/command.cpp).
-// Tables first, then one builder per command in the firmware's group order (general, motion, anim, gait,
-// debug). Every builder returns one command line as a string (no newline).
+// Tables first, then one builder per command in the firmware's group order (general, cal, motion, anim,
+// gait, debug). Every builder returns one command line as a string (no newline).
 
 // ---- tables ----
-export const GAIT = { STOP: 0, CREEP: 1, TROT: 2 };
-export const GAITS = [{ id: GAIT.CREEP, label: 'Creep' }, { id: GAIT.TROT, label: 'Trot' }];
+// The animations and gaits themselves come from the robot (# catalog, js/catalog.js); only player words live here.
+export const GAIT = { STOP: 0 };
 
 // Full-scale velocities at 100 % speed.
 export const SPEED = { MAX_MM_S: 40, MAX_DEG_S: 30 };
@@ -14,30 +14,24 @@ export const STRIDE = { MIN: 10, MAX: 50, DEFAULT: 30 };
 // watchdog zeroes the velocity after 1.5 s of silence, so a held stick resends well inside that.
 export const RESEND_MS = 100;
 
-// Animation ids = position in this list (mirror of Anim::Id in quadpod/animation.h). name is the firmware's
-// name (it reports "animation: <name> (<id>)"), label is what the player sees.
-export const ANIMS = [
-  ['stand', 'Stand'], ['sit', 'Sit'], ['rest', 'Rest'], ['wave', 'Wave'], ['bow', 'Bow'],
-  ['pushup', 'Push-ups'], ['stretch', 'Stretch'], ['lie', 'Lie down'], ['highfive', 'High five'],
-  ['wiggle', 'Wiggle'], ['look', 'Look around'], ['sway', 'Sway'],
-  ['bounce', 'Bounce'], ['twist', 'Twist'], ['ball', 'Ball'], ['splay', 'Splay'], ['breathe', 'Breathe'],
-  ['circle', 'Circle'], ['peek', 'Peek'], ['scratch', 'Scratch'], ['point', 'Point'], ['kick', 'Kick'],
-  ['scrape', 'Scrape'], ['splash', 'Splash'], ['crack', 'Crack'],
-].map(([name, label], id) => ({ id, name, label }));
-export const animLabel = name => ANIMS.find(a => a.name === name)?.label ?? name;
-// Whole-body postures: shown on the Pose tab, not in the animation grid. Stand is home() (H), rest is rest() (R).
-// sit stays listed so the sit animation is kept off the grid; the Pose tab's Sit is a body-pose preset instead.
-export const POSTURES = ['stand', 'sit', 'rest', 'lie', 'ball', 'splay'];
-// Idle fidgets (IDLE_SET in animation.cpp): the robot plays these by itself; not shown on the page (a surprise).
-export const HIDDEN = ['breathe', 'look', 'scratch', 'sway', 'stretch', 'scrape', 'crack'];
+// Player labels by firmware name (animations and gaits). Anything missing shows its name capitalised, so a new
+// animation appears on the page with no change here; add a label only when that reads badly.
+export const LABELS = {
+  pushup: 'Push-ups', lie: 'Lie down', highfive: 'High five', look: 'Look around',
+};
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+export const label = name => LABELS[name] ?? cap(name);
+// Animations the page leaves out on purpose besides the idle fidgets (tagged idle by the robot, a surprise):
+// the sit animation, because the Pose tab's Sit is a body-pose preset instead.
+export const OFF_PAGE = ['sit'];
 
 const r = v => Math.round(v);
-const byName = name => anim(ANIMS.find(a => a.name === name).id);
 
 // ---- general ----
 export const help  = () => '?';
 export const halt  = () => '!';   // stop and hold, servos stay powered (walking: feet planted at home)
 export const off   = () => 'X';   // servos unpowered: the robot drops
+export const catalog = () => '#'; // the robot lists its animations and gaits (js/catalog.js reads the reply)
 
 // ---- cal ----
 export const listCal = () => 'L';
@@ -50,9 +44,6 @@ export const pose  = ({ x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0 } = {}
 
 // ---- anim ----
 export const anim  = id => `A ${r(id)}`;
-export const lie   = () => byName('lie');
-export const ball  = () => byName('ball');
-export const splay = () => byName('splay');
 export const demo  = () => 'Y';
 
 // ---- gait ----

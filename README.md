@@ -33,7 +33,8 @@ style.css          tokens (light + dark), layout, shared components
 js/app.js          tab registry, header wiring, shared log buffer
 js/ble.js          Link: Web Bluetooth NUS transport, remembered device, auto-connect, send queue
                    (events: state, line, tx, error, info)
-js/protocol.js     tables (GAITS, SPEED, STRIDE, RESEND_MS, ANIMS, POSTURES, HIDDEN), then one builder per command in protocol group order
+js/protocol.js     tables (GAIT, SPEED, STRIDE, RESEND_MS, LABELS, OFF_PAGE), then one builder per command in protocol group order
+js/catalog.js      the robot's animation and gait list (# command), asked for on every connect and remembered
 js/ui.js           DOM helpers: h(), store, throttle(), slider(), segmented(), card()
 js/tabs/*.js       one module per tab
 ```
@@ -55,12 +56,14 @@ export default {
 ```
 
 `ctx` gives you `send(cmd, {quiet, key, urgent})`, `log(text, cls)`, `link`, `dev` (developer mode),
-`playing()` / `onPlaying(fn)` (the animation the robot reports, or null), and the log buffer helpers.
+`playing()` / `onPlaying(fn)` (the animation the robot reports, or null), `catalog`, and the log buffer helpers.
 Give continuous controls a `key` (one per stream, e.g. `'drive'`): a newer line replaces an unsent older
 one instead of queueing behind it. `urgent` is for STOP-like lines only. Add the module
 to `TABS` in `js/app.js`. Mark controls that need a connection with class `needs-link` and they dim until
-connected. New commands go in `js/protocol.js` under their protocol group; new postures in `POSTURES` and new
-body-pose presets in `PRESETS`, both in `js/tabs/pose.js`. Conventions: sentence-case player words for labels (developer details only when `ctx.dev`), `store.get/set`
+connected. New commands go in `js/protocol.js` under their protocol group; new body-pose presets in `PRESETS`
+in `js/tabs/pose.js`. Animations, postures and gaits come from the robot (`ctx.catalog.anims` / `.gaits`), so a
+new firmware animation needs no page change; give it a player label in `LABELS` only if its capitalised name
+reads badly. Conventions: sentence-case player words for labels (developer details only when `ctx.dev`), `store.get/set`
 for anything remembered, `P.RESEND_MS` for continuous controls, the `mt` class instead of inline margins.
 
 ## Testing locally

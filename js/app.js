@@ -4,6 +4,7 @@
 // dev?} and add it to TABS. dev: true tabs only show in developer mode (long-press the title for DEV_HOLD_MS).
 import { Link } from './ble.js';
 import * as P from './protocol.js';
+import { Catalog } from './catalog.js';
 import { h, store } from './ui.js';
 import drive from './tabs/drive.js';
 import pose from './tabs/pose.js';
@@ -63,11 +64,14 @@ function setPlaying(name) {
   for (const fn of playSubs) fn(playing);
 }
 
+// ---- the robot's animations and gaits: asked for on every connect; a changed list remounts the tab ----
+const catalog = new Catalog(() => { if (current) show(current.id, true); });
+
 // ---- developer mode: the Console tab and raw numbers; off for players ----
 let dev = store.get('dev') === '1';
 
 const ctx = {
-  link, send, log,
+  link, send, log, catalog,
   get dev() { return dev; },
   playing: () => playing,
   onPlaying: fn => { playSubs.add(fn); return () => playSubs.delete(fn); },
@@ -80,7 +84,7 @@ const ctx = {
 let linkState = { state: 'off', name: 'quadpod', reconnecting: false };
 function showStatus() {
   const { state, name, reconnecting, waiting } = linkState;
-  status.textContent = state === 'on' ? (playing ? 'playing ' + P.animLabel(playing) : 'connected to ' + name)
+  status.textContent = state === 'on' ? (playing ? 'playing ' + P.label(playing) : 'connected to ' + name)
     : state === 'busy' ? (reconnecting ? 'reconnecting…' : 'connecting…')
     : waiting ? 'waiting for ' + name + '…' : 'not connected';
 }
@@ -90,6 +94,7 @@ link.addEventListener('tx', e => log('> ' + e.detail.text, 'tx'));
 link.addEventListener('line', e => {
   const text = e.detail.text;
   log('< ' + text, text.startsWith('error:') ? 'err' : undefined);
+  if (catalog.feed(text)) return;
   const m = /^animation: (\w+)/.exec(text);
   if (m) setPlaying(m[1] === 'done' ? null : m[1]);
 });
@@ -105,7 +110,7 @@ link.addEventListener('state', e => {
   connectBtn.textContent = state === 'on' ? 'Disconnect' : 'Connect';
   connectBtn.disabled = state === 'busy';
   view.dataset.locked = state === 'on' ? 'false' : 'true';
-  if (state === 'on') { log('connected to ' + name, 'sys'); holdWake(); }
+  if (state === 'on') { log('connected to ' + name, 'sys'); holdWake(); send(P.catalog(), { quiet: true }); }
   else if (wasOn) current?.onHidden?.();          // link down or reconnecting: stop every continuous control
   if (state === 'off') { dropWake(); if (wasOn) log('disconnected', 'sys'); }
   wasOn = state === 'on';

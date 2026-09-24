@@ -13,7 +13,8 @@ export default {
 
   mount(root, ctx) {
     let stride = +store.get('stride') || P.STRIDE.DEFAULT;
-    const s = { gait: P.GAIT.CREEP, sx: 0, sy: 0, strafe: 0, active: false, timer: null };
+    const gaits = ctx.catalog.gaits.map(g => ({ id: g.id, label: P.label(g.name) }));
+    const s = { gait: gaits[0]?.id ?? 1, sx: 0, sy: 0, strafe: 0, active: false, timer: null };
     const readout = { vx: h('b', {}, '0'), vy: h('b', {}, '0'), wz: h('b', {}, '0') };
 
     const velocity = () => ({
@@ -83,7 +84,7 @@ export default {
       stride = v; store.set('stride', v);
       sendStride();
     } });
-    const gaitSeg = segmented(P.GAITS, s.gait, id => { s.gait = id; if (s.active) push(false); });
+    const gaitSeg = segmented(gaits, s.gait, id => { s.gait = id; if (s.active) push(false); });
 
     root.append(
       card('Drive', 'stick = speed and direction, step = stride length',

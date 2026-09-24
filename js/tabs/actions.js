@@ -1,4 +1,5 @@
-// Actions tab: the animation library and the demo. The highlighted chip is what the robot reports playing
+// Actions tab: the animation library and the demo. The list is the robot's catalog (ctx.catalog) minus the
+// postures (Pose tab), the idle fidgets and P.OFF_PAGE. The highlighted chip is what the robot reports playing
 // (ctx.onPlaying), not the last one tapped, so it clears when the animation ends or is stopped.
 import * as P from '../protocol.js';
 import { h, card } from '../ui.js';
@@ -8,15 +9,15 @@ export default {
   icon: '<path d="M5 4l14 8-14 8z"/>',
 
   mount(root, ctx) {
-    const shown = P.ANIMS.filter(a => !P.POSTURES.includes(a.name) && !P.HIDDEN.includes(a.name));
-    const chips = shown.map(a => h('button', { class: 'btn soft', 'data-name': a.name, onclick: () => ctx.send(P.anim(a.id)) }, a.label));
+    const shown = ctx.catalog.anims.filter(a => !a.posture && !a.idle && !P.OFF_PAGE.includes(a.name));
+    const chips = shown.map(a => h('button', { class: 'btn soft', 'data-name': a.name, onclick: () => ctx.send(P.anim(a.id)) }, P.label(a.name)));
     const mark = name => { for (const c of chips) c.classList.toggle('on', c.dataset.name === name); };
     mark(ctx.playing());
     this.unsub = ctx.onPlaying(mark);
 
     root.append(
       card('Animations', null,
-        h('div', { class: 'grid cols3 needs-link' }, chips),
+        chips.length ? h('div', { class: 'grid cols3 needs-link' }, chips) : h('p', { class: 'note' }, "Connect to load the robot’s moves."),
         h('div', { class: 'grid mt needs-link' },
           h('button', { class: 'btn', onclick: () => ctx.send(P.demo()) }, 'Play all (demo)'))),
     );
