@@ -5,6 +5,11 @@ the device named "quadpod". After that the page connects on its own whenever it 
 in range (on load, and again after a lost link), with no tap; the header shows "waiting for quadpod…"
 meanwhile. Errors show as a toast, and the screen stays awake while connected.
 
+It installs as an app (Chrome menu > Add to Home screen / Install app): a manifest plus a service worker that
+keeps the page loadable with no internet (network first, so a push shows up on the next load). If nobody
+touches the page for 5 minutes while connected (`IDLE_REST_MIN` in `js/protocol.js`), it sends `R` so the
+robot folds its legs instead of holding its weight.
+
 Remembering the robot needs `navigator.bluetooth.getDevices`, which Chrome on Android may keep behind
 `chrome://flags/#enable-web-bluetooth-new-permissions-backend` (set it to Enabled, relaunch). Without it
 every page load needs a Connect tap and the chooser. Uses Web Bluetooth with the Nordic UART Service, so it must be served over
@@ -20,9 +25,9 @@ a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), ho
 
 | Tab     | What it does |
 |---------|--------------|
-| Drive   | Proportional joystick (up/down forward/back, left/right rotate, diagonals arc; release to stop), Strafe slider that recentres on release, Step slider (stride mm; the firmware adapts the cadence), Creep/Trot |
-| Pose    | Postures card (whole-body positions): Stand, Rest, Lie, Ball, Splay; Poses card (feet planted): presets Sit, Tall, Crouch, Peek, Lean, then Height / Lean (roll) / Tilt (pitch) / Turn (yaw) sliders, Sideways / Forward shift under More, Snap back toggle (default on) returns a slider to centre on release and centres everything when switched on |
-| Actions | Every animation except the postures (on the Pose tab) and the idle fidgets (hidden on purpose), plus Play all (demo); highlights what the robot reports playing |
+| Drive   | Proportional joystick (up/down forward/back, left/right rotate, diagonals arc; release to stop), Strafe slider that recentres on release, Step slider (stride mm; the firmware adapts the cadence), Creep/Trot. Stick and strafe share a 10 % dead zone and give a short vibration as they leave it |
+| Pose    | Postures card (whole-body positions): Stand, Rest, Lie, Ball, Splay; Poses card (feet planted): presets Sit, Tall, Crouch, Chin up, Lean, then Height / Lean (roll) / Tilt (pitch) / Turn (yaw) sliders, Sideways / Forward shift under More, Snap back toggle (default on) returns a slider to centre on release and centres everything when switched on |
+| Actions | Every animation except the postures (on the Pose tab) and the idle fidgets (hidden on purpose), each with an icon, plus Play all (demo); highlights what the robot reports playing |
 | Console | Developer mode only (long-press the "Quadpod" title for 1 s). Reply log, raw command line with history, quick commands |
 
 ## Files
@@ -30,12 +35,14 @@ a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), ho
 ```
 index.html         shell only
 style.css          tokens (light + dark), layout, shared components
+manifest.webmanifest, sw.js, icons/   installable app: manifest, offline service worker (bump VERSION when
+                   its SHELL file list changes), app icons
 js/app.js          tab registry, header wiring, shared log buffer
 js/ble.js          Link: Web Bluetooth NUS transport, remembered device, auto-connect, send queue
                    (events: state, line, tx, error, info)
-js/protocol.js     tables (GAIT, SPEED, STRIDE, RESEND_MS, LABELS, OFF_PAGE), then one builder per command in protocol group order
+js/protocol.js     tables (GAIT, SPEED, STRIDE, RESEND_MS, LABELS, ICONS, IDLE_REST_MIN, OFF_PAGE), then one builder per command in protocol group order
 js/catalog.js      the robot's animation and gait list (# command), asked for on every connect and remembered
-js/ui.js           DOM helpers: h(), store, throttle(), slider(), segmented(), card()
+js/ui.js           DOM helpers: h(), store, throttle(), slider(), icon(), segmented(), card()
 js/tabs/*.js       one module per tab
 ```
 
@@ -63,8 +70,11 @@ to `TABS` in `js/app.js`. Mark controls that need a connection with class `needs
 connected. New commands go in `js/protocol.js` under their protocol group; new body-pose presets in `PRESETS`
 in `js/tabs/pose.js`. Animations, postures and gaits come from the robot (`ctx.catalog.anims` / `.gaits`), so a
 new firmware animation needs no page change; give it a player label in `LABELS` only if its capitalised name
-reads badly. Conventions: sentence-case player words for labels (developer details only when `ctx.dev`), `store.get/set`
+reads badly, and an icon in `ICONS` (stroke paths on a 24x24 grid; without one it gets a play triangle). A new
+file in the page goes in `SHELL` in `sw.js` too. Conventions: sentence-case player words for labels (developer details only when `ctx.dev`), `store.get/set`
 for anything remembered, `P.RESEND_MS` for continuous controls, the `mt` class instead of inline margins.
+Tabs are a `tablist` of `tab` buttons (`aria-selected` follows the shown tab) and the header status is a polite
+live region, so a screen reader hears the connection and "playing" changes.
 
 ## Testing locally
 

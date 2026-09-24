@@ -41,6 +41,16 @@ export function slider(label, { min, max, value = 0, step = 1, format = String, 
   return { el, get: () => +input.value, set: v => { input.value = v; out.value = format(+v); } };
 }
 
+// Inline SVG icon from stroke paths drawn on a 24x24 grid (tab icons, animation icons); styled by .ico.
+export function icon(paths) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', 'ico');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.innerHTML = paths;
+  return svg;
+}
+
 // Segmented control. options: [{id, label}]; onChange(id).
 export function segmented(options, value, onChange) {
   const el = h('div', { class: 'seg' });

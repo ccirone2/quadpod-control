@@ -5,7 +5,7 @@
 import { Link } from './ble.js';
 import * as P from './protocol.js';
 import { Catalog } from './catalog.js';
-import { h, store } from './ui.js';
+import { h, store, icon } from './ui.js';
 import drive from './tabs/drive.js';
 import pose from './tabs/pose.js';
 import actions from './tabs/actions.js';
@@ -149,17 +149,12 @@ function show(id, remount = false) {
   view.replaceChildren();
   view.scrollTop = 0;
   tab.mount(view, ctx);
-  for (const b of nav.children) b.classList.toggle('on', b.dataset.id === tab.id);
+  for (const b of nav.children) { const on = b.dataset.id === tab.id; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); }
   if (!tab.dev) store.set('tab', tab.id);         // a developer tab is never the landing tab
 }
-function icon(paths) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.innerHTML = paths;
-  return svg;
-}
 function buildNav() {
-  nav.replaceChildren(...visible().map(t => h('button', { 'data-id': t.id, onclick: () => show(t.id) }, icon(t.icon), t.label)));
+  nav.replaceChildren(...visible().map(t => h('button', { role: 'tab', 'aria-controls': 'view',
+    'aria-selected': String(t.id === current?.id), 'data-id': t.id, onclick: () => show(t.id) }, icon(t.icon), t.label)));
 }
 function setDev(on) {
   dev = on;
@@ -182,4 +177,20 @@ view.dataset.locked = 'true';
 show(first);
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) current?.onHidden?.(); else holdWake(); });
+
+// ---- inactivity rest: nobody has touched the page for IDLE_REST_MIN while connected: fold the legs (R) ----
+// Spares the servos (a standing robot holds its weight and fidgets) when the phone is left lying around.
+let lastTouch = Date.now(), rested = false;
+const touched = () => { lastTouch = Date.now(); rested = false; };
+for (const ev of ['pointerdown', 'pointermove', 'keydown', 'input']) document.addEventListener(ev, touched, { passive: true, capture: true });
+link.addEventListener('state', e => { if (e.detail.state === 'on') touched(); });
+setInterval(() => {
+  if (rested || !link.connected || Date.now() - lastTouch < P.IDLE_REST_MIN * 60000) return;
+  rested = true;
+  current?.onHidden?.(); send(P.rest());
+  toast(`Resting after ${P.IDLE_REST_MIN} min idle`);
+}, 15000);
+
+// ---- installable app: the service worker keeps the page loadable offline (the robot link needs no internet) ----
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 if (!link.supported) { log('Web Bluetooth is not available in this browser', 'err'); toast('Web Bluetooth is not available in this browser', 'err'); }

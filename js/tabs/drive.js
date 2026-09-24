@@ -5,7 +5,10 @@ import * as P from '../protocol.js';
 import { h, card, slider, segmented, throttle, store } from '../ui.js';
 
 const RESEND_MS = P.RESEND_MS;   // stick update throttle; while touched the drive line is also resent every 2x this
-const DEAD = 0.10;       // stick dead zone, fraction of radius
+const DEAD = 0.10;       // stick and strafe dead zone, fraction of full scale
+const buzz = () => navigator.vibrate?.(10);   // haptic tick when a control leaves its dead zone (Android)
+// Dead zone, then rescale so motion starts from 0 just past its edge: 0..1 in, 0..1 out.
+const pastDead = m => m < DEAD ? 0 : (m - DEAD) / (1 - DEAD);
 
 export default {
   id: 'drive', label: 'Drive',
@@ -14,7 +17,7 @@ export default {
   mount(root, ctx) {
     let stride = +store.get('stride') || P.STRIDE.DEFAULT;
     const gaits = ctx.catalog.gaits.map(g => ({ id: g.id, label: P.label(g.name) }));
-    const s = { gait: gaits[0]?.id ?? 1, sx: 0, sy: 0, strafe: 0, active: false, timer: null };
+    const s = { gait: gaits[0]?.id ?? 1, sx: 0, sy: 0, strafe: 0, active: false, timer: null, stickDead: true, strafeDead: true };
     const readout = { vx: h('b', {}, '0'), vy: h('b', {}, '0'), wz: h('b', {}, '0') };
 
     const velocity = () => ({
@@ -54,13 +57,15 @@ export default {
       if (m > 1) { dx /= m; dy /= m; }
       knob.style.transform = `translate(calc(-50% + ${dx * R * 0.6}px), calc(-50% + ${dy * R * 0.6}px))`;
       const mag = Math.min(m, 1);
-      const k = mag < DEAD ? 0 : (mag - DEAD) / (1 - DEAD) / mag;   // rescale past the dead zone
+      const k = mag < DEAD ? 0 : pastDead(mag) / mag;
+      if (s.stickDead && mag >= DEAD) buzz();
+      s.stickDead = mag < DEAD;
       s.sx = dx * k; s.sy = -dy * k;                               // up on screen = forward
       update();
     };
     const releaseStick = () => {
       if (pid === null) return;
-      pid = null; stick.classList.remove('live');
+      pid = null; stick.classList.remove('live'); s.stickDead = true;
       knob.style.transform = 'translate(-50%, -50%)';
       s.sx = s.sy = 0; update();
     };
@@ -73,10 +78,15 @@ export default {
     for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) stick.addEventListener(ev, e => { if (e.pointerId === pid) releaseStick(); });
     stick.addEventListener('contextmenu', e => e.preventDefault());
 
-    // --- strafe slider: recentres on release ---
+    // --- strafe slider: dead zone round the centre like the stick, recentres on release ---
     const strafeSl = slider('Strafe', { min: -100, max: 100, value: 0, format: v => v + '%',
-      onInput: v => { s.strafe = v / 100; update(); },
-      onRelease: () => { strafeSl.set(0); s.strafe = 0; update(); } });
+      onInput: v => {
+        const a = Math.abs(v / 100);
+        if (s.strafeDead && a >= DEAD) buzz();
+        s.strafeDead = a < DEAD;
+        s.strafe = Math.sign(v) * pastDead(a); update();
+      },
+      onRelease: () => { strafeSl.set(0); s.strafe = 0; s.strafeDead = true; update(); } });
 
     // --- step size and gait ---
     const sendStride = throttle(() => ctx.send(P.stride(stride), { quiet: true, key: 'stride' }), RESEND_MS);

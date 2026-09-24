@@ -52,17 +52,18 @@ body {
   height: var(--nav-h); border: 0; background: none; color: var(--muted); font: inherit; font-size: 11px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer;
 }
-#tabs button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#tabs button .ico { width: 22px; height: 22px; }
 #tabs button.on { color: var(--key); }
 
 /* ---- shared components ---- */
+.ico { width: 24px; height: 24px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin-bottom: 12px; }
 .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .card h2 .hint { text-transform: none; letter-spacing: 0; font-weight: 400; }
 
 .btn {
   font: inherit; border: 0; border-radius: 10px; padding: 12px 10px; background: var(--key); color: var(--key-ink);
-  font-weight: 600; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer;
+  font-weight: 600; touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer;
 }
 .btn:active { filter: brightness(.8); }
 .btn.soft { background: var(--soft); color: var(--ink); font-weight: 500; }
@@ -72,14 +73,16 @@ body {
 .btn:disabled { opacity: .4; pointer-events: none; }
 #top .btn { padding: 10px 14px; font-size: 14px; }
 /* STOP: a dark fill sweeps across while it is held; full = servos off */
-#estop { background: linear-gradient(to right, #7f1d1d 50%, var(--bad) 50%) right / 200% 100% no-repeat; }
+#estop { touch-action: none; background: linear-gradient(to right, #7f1d1d 50%, var(--bad) 50%) right / 200% 100% no-repeat; }
 #estop.arming { background-position: left; transition: background-position 1s linear; }
 
 .grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
 .grid.cols3 { grid-template-columns: repeat(3, 1fr); }
 .grid.cols3 .btn { padding: 14px 6px; }
-.grid.cols5 { grid-template-columns: repeat(5, 1fr); gap: 6px; }
-.grid.cols5 .btn { padding: 14px 2px; font-size: 13px; white-space: nowrap; overflow: hidden; }
+/* five across down to ~300 px of card, then four; a long label wraps onto a second line instead of being cut */
+.grid.cols5 { grid-template-columns: repeat(auto-fit, minmax(54px, 1fr)); gap: 6px; }
+.grid.cols5 .btn { padding: 12px 3px; font-size: 13px; line-height: 1.2; min-width: 0; }
+.btn.act { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; }
 .toggle { display: flex; align-items: center; gap: 6px; text-transform: none; letter-spacing: 0; font-weight: 400; cursor: pointer; }
 .toggle input { accent-color: var(--key); width: 16px; height: 16px; margin: 0; }
 .seg { display: flex; gap: 6px; background: var(--soft); border-radius: 10px; padding: 4px; }

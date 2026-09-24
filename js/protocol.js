@@ -19,6 +19,27 @@ export const RESEND_MS = 100;
 export const LABELS = {
   pushup: 'Push-ups', lie: 'Lie down', highfive: 'High five', look: 'Look around',
 };
+// Actions icons by firmware name: stroke paths on a 24x24 grid. A name missing here gets PLAY, so a new
+// animation still shows; draw it one when there is time.
+const HAND = '<path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V11M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6a1.5 1.5 0 0 1 3 0v7a6 6 0 0 1-12 0v-1.5a1.5 1.5 0 0 1 3 0"/>';
+const PLAY = '<path d="M7 5l12 7-12 7z"/>';
+export const ICONS = {
+  wave: HAND + '<path d="M19.5 3.5c1 .8 1.6 1.8 1.8 3M2.7 6.5c.2-1.2.8-2.2 1.8-3"/>',
+  highfive: HAND + '<path d="M12 1v1.5M5 3l1 1.2M19 3l-1 1.2"/>',
+  bow: '<path d="M3 17l18-8"/><path d="M6 15.7V21M18 10.3V21"/><path d="M3 21h18"/>',
+  pushup: '<path d="M3 21h18"/><path d="M5 15h14"/><path d="M7 15v6M17 15v6"/><path d="M12 11V3M9 6l3-3 3 3"/>',
+  wiggle: '<path d="M2 12l3-4 3 8 3-8 3 8 3-8 3 8 2-4"/>',
+  bounce: '<circle cx="12" cy="5" r="3"/><path d="M12 10v7M9 14l3 3 3-3M4 21h16"/>',
+  twist: '<path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M18 2v4.5h-4.5"/>',
+  circle: '<circle cx="12" cy="12" r="8" stroke-dasharray="2.5 3"/><circle cx="12" cy="4" r="2"/>',
+  peek: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  point: '<path d="M3 12h13M12 7l5 5-5 5"/><circle cx="20.5" cy="12" r="1.5"/>',
+  kick: '<path d="M4 21l5-9 7-3"/><circle cx="19.5" cy="5.5" r="2.5"/><path d="M3 21h6"/>',
+  splash: '<path d="M12 4s5 5.5 5 9.5a5 5 0 0 1-10 0C7 9.5 12 4 12 4z"/><path d="M3.5 8l1.5 1M20.5 8L19 9M4 15h1.5M18.5 15H20"/>',
+};
+export const iconOf = name => ICONS[name] ?? PLAY;
+// The page rests the robot (R) after this long with no touch on the page, to spare the servos.
+export const IDLE_REST_MIN = 5;
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 export const label = name => LABELS[name] ?? cap(name);
 // Animations the page leaves out on purpose besides the idle fidgets (tagged idle by the robot, a surprise):

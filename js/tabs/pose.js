@@ -31,7 +31,7 @@ const PRESETS = [
   { label: 'Sit',    pose: { z: -35, pitch: 40 } },   // low, nose up: sitting on the tail
   { label: 'Tall',   pose: { z: 45, pitch: -10 } },
   { label: 'Crouch', pose: { z: 17, pitch: -40 } },   // nose right down
-  { label: 'Peek',   pose: { z: 10, pitch: 15 } },   // +pitch = nose up, like the peek animation
+  { label: 'Chin up', pose: { z: 10, pitch: 15 } },  // +pitch = nose up (not "Peek": that is an animation)
   { label: 'Lean',   pose: { roll: 15 } },
 ];
 
