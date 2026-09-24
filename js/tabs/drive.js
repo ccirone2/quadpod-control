@@ -34,10 +34,13 @@ export default {
       else if (moving) pushThrottled();
       else stop();
     };
-    const stop = () => {
+    // Zero everything. A released stick keeps the gait engaged at zero speed (G <gait> 0 0 0);
+    // leave = true sends one G 0 that exits the gait, even when no walk was active.
+    const stop = (leave = false) => {
       pushThrottled.cancel(); clearInterval(s.timer); s.timer = null;
       s.sx = s.sy = s.strafe = 0; strafeSl?.set(0); show(velocity());
-      if (s.active) { s.active = false; ctx.send(P.stopGait(s.gait)); }
+      if (s.active || leave) ctx.send(P.stopGait(leave ? P.GAIT.STOP : s.gait));
+      s.active = false;
     };
 
     // --- joystick ---
@@ -74,7 +77,7 @@ export default {
     const strafeSl = slider('strafe', { min: -100, max: 100, value: 0, format: v => v + '%',
       onInput: v => { s.strafe = v / 100; update(); },
       onRelease: () => { strafeSl.set(0); s.strafe = 0; update(); } });
-    const stopBtn = h('button', { class: 'btn soft needs-link', onclick: () => { releaseStick(); stop(); ctx.send(P.stopGait()); } }, 'stop');
+    const stopBtn = h('button', { class: 'btn soft needs-link', onclick: () => { stop(true); releaseStick(); } }, 'stop');   // stop first so the release sends nothing
 
     // --- step size and gait ---
     const sendStride = throttle(() => ctx.send(P.stride(stride), { quiet: true }), RESEND_MS);
