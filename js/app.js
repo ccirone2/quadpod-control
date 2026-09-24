@@ -3,7 +3,7 @@
 // and add it to TABS.
 import { Link } from './ble.js';
 import * as P from './protocol.js';
-import { h } from './ui.js';
+import { h, store } from './ui.js';
 import drive from './tabs/drive.js';
 import pose from './tabs/pose.js';
 import actions from './tabs/actions.js';
@@ -37,7 +37,7 @@ const ctx = {
 
 // ---- link events ----
 link.addEventListener('tx', e => log('> ' + e.detail.text, 'tx'));
-link.addEventListener('line', e => log('< ' + e.detail.text));
+link.addEventListener('line', e => log('< ' + e.detail.text, e.detail.text.startsWith('error:') ? 'err' : undefined));
 link.addEventListener('error', e => log(e.detail.text, 'err'));
 link.addEventListener('state', e => {
   const { state, name } = e.detail;
@@ -82,7 +82,7 @@ function show(id) {
   view.scrollTop = 0;
   tab.mount(view, ctx);
   for (const b of nav.children) b.classList.toggle('on', b.dataset.id === tab.id);
-  try { localStorage.setItem('quadpod.tab', tab.id); } catch {}
+  store.set('tab', tab.id);
 }
 function icon(paths) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -92,8 +92,7 @@ function icon(paths) {
 }
 for (const t of TABS) nav.append(h('button', { 'data-id': t.id, onclick: () => show(t.id) }, icon(t.icon), t.label));
 
-let first = TABS[0].id;
-try { first = localStorage.getItem('quadpod.tab') || first; } catch {}
+const first = store.get('tab', TABS[0].id);
 view.dataset.locked = 'true';
 show(first);
 

@@ -64,7 +64,7 @@ body {
   font: inherit; border: 0; border-radius: 10px; padding: 12px 10px; background: var(--key); color: var(--key-ink);
   font-weight: 600; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer;
 }
-.btn:active, .btn.held { filter: brightness(.8); }
+.btn:active { filter: brightness(.8); }
 .btn.soft { background: var(--soft); color: var(--ink); font-weight: 500; }
 .btn.soft.on { outline: 3px solid var(--ok); outline-offset: -3px; }
 .btn.bad { background: var(--bad); }
@@ -101,6 +101,7 @@ details summary { font-size: 13px; color: var(--muted); cursor: pointer; margin:
 .readout { display: flex; justify-content: space-around; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 8px; }
 .readout b { color: var(--ink); font-weight: 600; }
 .note { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+.mt { margin-top: 8px; }
 
 /* ---- joystick ---- */
 .joystick {

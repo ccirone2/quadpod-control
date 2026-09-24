@@ -1,18 +1,18 @@
 // Pose tab: one Poses card (whole-body postures, then standing body presets), and the body height / roll /
 // pitch / yaw sliders (feet stay planted) with x/y shift under "more".
 import * as P from '../protocol.js';
-import { h, card, slider, throttle } from '../ui.js';
+import { h, card, slider, throttle, store } from '../ui.js';
 
 // Ranges cover the legs' reach from the 60 mm standing height (the firmware IK clamps anything beyond).
 const AXES = [
-  { key: 'z',     label: 'height', min: -35, max: 45 },
-  { key: 'roll',  label: 'roll',   min: -40, max: 40 },
-  { key: 'pitch', label: 'pitch',  min: -40, max: 40 },
-  { key: 'yaw',   label: 'yaw',    min: -45, max: 45 },
+  { key: 'z',     label: 'Height', min: -35, max: 45 },
+  { key: 'roll',  label: 'Roll',   min: -40, max: 40 },
+  { key: 'pitch', label: 'Pitch',  min: -40, max: 40 },
+  { key: 'yaw',   label: 'Yaw',    min: -45, max: 45 },
 ];
 const EXTRA = [
-  { key: 'x', label: 'shift x', min: -35, max: 35 },
-  { key: 'y', label: 'shift y', min: -35, max: 35 },
+  { key: 'x', label: 'Shift x', min: -35, max: 35 },
+  { key: 'y', label: 'Shift y', min: -35, max: 35 },
 ];
 // Whole-body postures (each one resets the sliders to zero). Stand is the H command: home stance, level.
 const POSES = [
@@ -25,10 +25,10 @@ const POSES = [
 ];
 // Standing body-pose presets: set the sliders and send one P command. Add more here, they appear as chips.
 const PRESETS = [
-  { label: 'tall',   pose: { z: 25 } },
-  { label: 'crouch', pose: { z: -25 } },
-  { label: 'peek',   pose: { z: 10, pitch: 15 } },   // +pitch = nose up, like the peek animation
-  { label: 'lean',   pose: { roll: 15 } },
+  { label: 'Tall',   pose: { z: 25 } },
+  { label: 'Crouch', pose: { z: -25 } },
+  { label: 'Peek',   pose: { z: 10, pitch: 15 } },   // +pitch = nose up, like the peek animation
+  { label: 'Lean',   pose: { roll: 15 } },
 ];
 
 export default {
@@ -38,9 +38,8 @@ export default {
   mount(root, ctx) {
     const cur = {};
     const sliders = {};
-    let snap = true;
-    try { snap = localStorage.getItem('quadpod.snap') !== '0'; } catch {}
-    const send = throttle(() => ctx.send(P.pose(cur), { quiet: true }), 100);
+    let snap = store.get('snap') !== '0';
+    const send = throttle(() => ctx.send(P.pose(cur), { quiet: true }), P.RESEND_MS);
     const make = a => {
       cur[a.key] = 0;
       sliders[a.key] = slider(a.label, { ...a,
@@ -50,7 +49,7 @@ export default {
     };
     const snapBox = h('input', { type: 'checkbox', checked: snap, onchange: e => {
       snap = e.target.checked;
-      try { localStorage.setItem('quadpod.snap', snap ? '1' : '0'); } catch {}
+      store.set('snap', snap ? '1' : '0');
       if (snap) apply({});                       // turning it on centres everything now
     } });
     const apply = pose => {
@@ -65,10 +64,10 @@ export default {
         h('div', { class: 'grid cols5 needs-link' },
           POSES.map(p => h('button', { class: 'btn' + (p.primary ? '' : ' soft'), onclick: () => { reset(); ctx.send(p.cmd()); } }, p.label)),
           PRESETS.map(p => h('button', { class: 'btn soft', onclick: () => apply(p.pose) }, p.label)))),
-      card('Body pose', h('label', { class: 'toggle' }, snapBox, 'snap back'),
+      card('Body pose', h('label', { class: 'toggle' }, snapBox, 'Snap back'),
         h('div', { class: 'needs-link' },
           AXES.map(make),
-          h('details', {}, h('summary', {}, 'more'), EXTRA.map(make)))),
+          h('details', {}, h('summary', {}, 'More'), EXTRA.map(make)))),
     );
   },
 };

@@ -14,9 +14,9 @@ a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), ho
 
 | Tab     | What it does |
 |---------|--------------|
-| Drive   | Proportional joystick (up/down forward/back, left/right rotate, diagonals arc), strafe slider that recentres on release, step-size slider (stride mm; the firmware adapts the cadence), creep/trot |
-| Pose    | Poses card: postures (Stand, Rest, Sit, Lie, Ball, Splay) plus standing presets (tall, crouch, peek, lean); body height / roll / pitch / yaw sliders, x/y shift under "more", "snap back" toggle (default on) returns a slider to centre on release and centres everything when switched on |
-| Actions | All animations, demo |
+| Drive   | Proportional joystick (up/down forward/back, left/right rotate, diagonals arc), Strafe slider that recentres on release, Step slider (stride mm; the firmware adapts the cadence), Creep/Trot |
+| Pose    | Poses card: postures (Stand, Rest, Sit, Lie, Ball, Splay) plus standing presets (Tall, Crouch, Peek, Lean); Body pose card: height / roll / pitch / yaw sliders, x/y shift under More, Snap back toggle (default on) returns a slider to centre on release and centres everything when switched on |
+| Actions | Every animation except the postures (on the Pose tab) and the idle fidgets (hidden on purpose), plus Play all (demo) |
 | Console | Reply log, raw command line with history, quick commands |
 
 ## Files
@@ -26,8 +26,8 @@ index.html         shell only
 style.css          tokens (light + dark), layout, shared components
 js/app.js          tab registry, header wiring, shared log buffer
 js/ble.js          Link: Web Bluetooth NUS transport (events: state, line, tx, error)
-js/protocol.js     command builders (gait, stride, pose, anim, ...) and the ANIMS / POSTURES / HIDDEN / GAITS / SPEED / STRIDE tables
-js/ui.js           DOM helpers: h(), throttle(), slider(), segmented(), card()
+js/protocol.js     tables (GAITS, SPEED, STRIDE, RESEND_MS, ANIMS, POSTURES, HIDDEN), then one builder per command in protocol group order
+js/ui.js           DOM helpers: h(), store, cap(), throttle(), slider(), segmented(), card()
 js/tabs/*.js       one module per tab
 ```
 
@@ -48,7 +48,9 @@ export default {
 
 `ctx` gives you `send(cmd, {quiet})`, `log(text, cls)`, `link`, and the log buffer helpers. Add the module
 to `TABS` in `js/app.js`. Mark controls that need a connection with class `needs-link` and they dim until
-connected. New commands go in `js/protocol.js`; new postures in `POSES` and new standing presets in `PRESETS`, both in `js/tabs/pose.js`.
+connected. New commands go in `js/protocol.js` under their protocol group; new postures in `POSES` and new
+standing presets in `PRESETS`, both in `js/tabs/pose.js`. Conventions: sentence-case labels, `store.get/set`
+for anything remembered, `P.RESEND_MS` for continuous controls, the `mt` class instead of inline margins.
 
 ## Testing locally
 

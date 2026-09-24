@@ -1,5 +1,12 @@
 // Small DOM helpers shared by the tabs.
 
+// Per-viewer settings in localStorage under 'quadpod.<key>'. Storage can be missing or blocked, so both
+// calls swallow errors and get() falls back to the default.
+export const store = {
+  get(key, fallback = null) { try { return localStorage.getItem('quadpod.' + key) ?? fallback; } catch { return fallback; } },
+  set(key, value) { try { localStorage.setItem('quadpod.' + key, value); } catch {} },
+};
+
 // h('button', {class: 'btn', onclick: fn, 'data-id': 1}, 'label', childEl, ...)
 export function h(tag, attrs = {}, ...children) {
   const el = document.createElement(tag);
@@ -13,6 +20,9 @@ export function h(tag, attrs = {}, ...children) {
   for (const c of children.flat()) if (c != null) el.append(c.nodeType ? c : document.createTextNode(c));
   return el;
 }
+
+// Display label from a protocol name: 'highfive' -> 'Highfive'.
+export const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 // Trailing-edge throttle: the latest call runs at most once per `ms`.
 export function throttle(fn, ms) {

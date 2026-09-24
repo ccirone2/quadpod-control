@@ -2,9 +2,9 @@
 // strafe slider (vx, recentres on release), step-size slider (stride mm, U command), gait choice.
 // Stick distance from centre is the only speed control.
 import * as P from '../protocol.js';
-import { h, card, slider, segmented, throttle } from '../ui.js';
+import { h, card, slider, segmented, throttle, store } from '../ui.js';
 
-const RESEND_MS = 100;   // stick update throttle; while touched the drive line is resent every 2x this (firmware watchdog is 1.5 s)
+const RESEND_MS = P.RESEND_MS;   // stick update throttle; while touched the drive line is also resent every 2x this
 const DEAD = 0.10;       // stick dead zone, fraction of radius
 
 export default {
@@ -12,8 +12,7 @@ export default {
   icon: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
 
   mount(root, ctx) {
-    let stride = P.STRIDE.DEFAULT;
-    try { stride = +localStorage.getItem('quadpod.stride') || stride; } catch {}
+    let stride = +store.get('stride') || P.STRIDE.DEFAULT;
     const s = { gait: P.GAIT.CREEP, sx: 0, sy: 0, strafe: 0, active: false, timer: null };
     const readout = { vx: h('b', {}, '0'), vy: h('b', {}, '0'), wz: h('b', {}, '0') };
 
@@ -74,15 +73,15 @@ export default {
     stick.addEventListener('contextmenu', e => e.preventDefault());
 
     // --- strafe slider: recentres on release ---
-    const strafeSl = slider('strafe', { min: -100, max: 100, value: 0, format: v => v + '%',
+    const strafeSl = slider('Strafe', { min: -100, max: 100, value: 0, format: v => v + '%',
       onInput: v => { s.strafe = v / 100; update(); },
       onRelease: () => { strafeSl.set(0); s.strafe = 0; update(); } });
-    const stopBtn = h('button', { class: 'btn soft needs-link', onclick: () => { stop(true); releaseStick(); } }, 'stop');   // stop first so the release sends nothing
+    const stopBtn = h('button', { class: 'btn soft needs-link', onclick: () => { stop(true); releaseStick(); } }, 'Stop');   // stop first so the release sends nothing
 
     // --- step size and gait ---
     const sendStride = throttle(() => ctx.send(P.stride(stride), { quiet: true }), RESEND_MS);
-    const step = slider('step', { min: P.STRIDE.MIN, max: P.STRIDE.MAX, value: stride, format: v => v + ' mm', onInput: v => {
-      stride = v; try { localStorage.setItem('quadpod.stride', v); } catch {}
+    const step = slider('Step', { min: P.STRIDE.MIN, max: P.STRIDE.MAX, value: stride, format: v => v + ' mm', onInput: v => {
+      stride = v; store.set('stride', v);
       sendStride();
     } });
     const gaitSeg = segmented(P.GAITS, s.gait, id => { s.gait = id; if (s.active) push(false); });
@@ -96,7 +95,7 @@ export default {
             h('span', {}, 'vx ', readout.vx), h('span', {}, 'vy ', readout.vy), h('span', {}, 'wz ', readout.wz)),
         )),
       card('Settings', null,
-        h('div', { class: 'needs-link' }, step.el, h('div', { style: 'margin-top:8px' }, gaitSeg.el))),
+        h('div', { class: 'needs-link' }, step.el, h('div', { class: 'mt' }, gaitSeg.el))),
     );
 
     this.halt = () => { releaseStick(); stop(); };

@@ -40,9 +40,9 @@ export default {
     root.append(
       card('Log', null, log,
         h('div', { class: 'cmdline' }, input, h('button', { class: 'btn sm', onclick: submit }, 'Send')),
-        h('div', { class: 'chips', style: 'margin-top:8px' },
+        h('div', { class: 'chips mt' },
           QUICK.map(([label, cmd]) => h('button', { class: 'btn soft sm', onclick: () => ctx.send(cmd) }, label)),
-          h('button', { class: 'btn soft sm', onclick: () => { ctx.clearLog(); } }, 'clear'))),
+          h('button', { class: 'btn soft sm', onclick: () => { ctx.clearLog(); } }, 'Clear'))),
       h('p', { class: 'note' }, 'Needs Chrome on Android over https. Robot advertises as "quadpod".'),
     );
   },
