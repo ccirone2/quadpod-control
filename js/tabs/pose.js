@@ -27,7 +27,7 @@ const POSES = [
 const PRESETS = [
   { label: 'tall',   pose: { z: 25 } },
   { label: 'crouch', pose: { z: -25 } },
-  { label: 'peek',   pose: { z: 10, pitch: -15 } },
+  { label: 'peek',   pose: { z: 10, pitch: 15 } },   // +pitch = nose up, like the peek animation
   { label: 'lean',   pose: { roll: 15 } },
 ];
 
