@@ -16,7 +16,6 @@ export const ANIMS = ['stand', 'sit', 'rest', 'wave', 'bow', 'pushup', 'stretch'
   'breathe', 'circle', 'peek', 'scratch', 'point', 'kick', 'scrape', 'splash'].map((label, id) => ({ id, label }));
 
 export const help  = () => '?';
-export const engine = () => 'E';
 export const home  = () => 'H';
 export const rest  = () => 'R';
 export const off   = () => 'X';
@@ -37,7 +36,6 @@ export const gait  = (type, vx = 0, vy = 0, wz = 0) => `G ${r(type)} ${r(vx)} ${
 export const stopGait = (type = GAIT.STOP) => gait(type, 0, 0, 0);
 export const pose  = ({ x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0 } = {}) =>
   `P ${r(x)} ${r(y)} ${r(z)} ${r(roll)} ${r(pitch)} ${r(yaw)}`;
-export const tune  = (stepH, cycleMs) => `B ${r(stepH)} ${r(cycleMs)}`;
 export const stride = mm => `U ${r(mm)}`;
 
 // Multi-step actions: [{cmd, delay}] where delay is the pause before the next step (ms).

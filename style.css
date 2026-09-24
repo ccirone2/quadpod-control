@@ -68,13 +68,11 @@ body {
 .btn.soft { background: var(--soft); color: var(--ink); font-weight: 500; }
 .btn.soft.on { outline: 3px solid var(--ok); outline-offset: -3px; }
 .btn.bad { background: var(--bad); }
-.btn.warn { background: var(--warn); }
 .btn.sm { padding: 8px 12px; font-size: 14px; }
 .btn:disabled { opacity: .4; pointer-events: none; }
 #top .btn { padding: 10px 14px; font-size: 14px; }
 
 .grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
-.grid.tight { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); }
 .grid.cols3 { grid-template-columns: repeat(3, 1fr); }
 .grid.cols3 .btn { padding: 14px 6px; }
 .grid.cols5 { grid-template-columns: repeat(5, 1fr); gap: 6px; }

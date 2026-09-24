@@ -14,20 +14,6 @@ export function h(tag, attrs = {}, ...children) {
   return el;
 }
 
-// Press-and-hold: onDown when the pointer goes down, onUp when it lifts, leaves or is cancelled.
-export function holdButton(el, onDown, onUp) {
-  let held = false;
-  const up = () => { if (!held) return; held = false; el.classList.remove('held'); onUp(); };
-  el.addEventListener('pointerdown', e => {
-    e.preventDefault(); held = true; el.classList.add('held');
-    try { el.setPointerCapture(e.pointerId); } catch {}
-    onDown();
-  });
-  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(ev, up);
-  el.addEventListener('contextmenu', e => e.preventDefault());
-  return up;   // caller can force-release (tab leave, page hidden)
-}
-
 // Trailing-edge throttle: the latest call runs at most once per `ms`.
 export function throttle(fn, ms) {
   let timer = null, pending = null;

@@ -1,10 +1,10 @@
-// Drive tab: proportional joystick (up/down = vx, left/right = wz, diagonals blend into an arc),
+// Drive tab: proportional joystick (up/down = vy forward/back, left/right = wz rotate, diagonals blend into an arc),
 // strafe slider (vx, recentres on release), step-size slider (stride mm, U command), gait choice.
 // Stick distance from centre is the only speed control.
 import * as P from '../protocol.js';
 import { h, card, slider, segmented, throttle } from '../ui.js';
 
-const RESEND_MS = 100;   // keep sending while touched (future firmware watchdog), throttle stick updates
+const RESEND_MS = 100;   // stick update throttle; while touched the drive line is resent every 2x this (firmware watchdog is 1.5 s)
 const DEAD = 0.10;       // stick dead zone, fraction of radius
 
 export default {

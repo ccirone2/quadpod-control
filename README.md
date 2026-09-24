@@ -25,8 +25,8 @@ index.html         shell only
 style.css          tokens (light + dark), layout, shared components
 js/app.js          tab registry, header wiring, shared log buffer
 js/ble.js          Link: Web Bluetooth NUS transport (events: state, line, tx, error)
-js/protocol.js     command builders (gait, stride, pose, anim, ...) and the ANIMS / GAITS / SPEED / STRIDE tables
-js/ui.js           DOM helpers: h(), holdButton(), throttle(), slider(), segmented(), card()
+js/protocol.js     command builders (gait, stride, pose, anim, ...) and the ANIMS / POSTURES / HIDDEN / GAITS / SPEED / STRIDE tables
+js/ui.js           DOM helpers: h(), throttle(), slider(), segmented(), card()
 js/tabs/*.js       one module per tab
 ```
 
