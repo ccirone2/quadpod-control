@@ -8,8 +8,9 @@ Live: https://ccirone2.github.io/quadpod-control/
 
 ## Layout
 
-Sticky header (status, Connect, STOP) + one tab of content + bottom tab bar. STOP halts walking and
-powers the servos off from any tab.
+Sticky header (status, Connect, STOP) + one tab of content + bottom tab bar. STOP works from any tab:
+a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), holding it for 1 s sends `X`
+(servos off, the robot drops). A BLE disconnect halts the robot the same way as a tap.
 
 | Tab     | What it does |
 |---------|--------------|

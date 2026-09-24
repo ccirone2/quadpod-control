@@ -71,6 +71,9 @@ body {
 .btn.sm { padding: 8px 12px; font-size: 14px; }
 .btn:disabled { opacity: .4; pointer-events: none; }
 #top .btn { padding: 10px 14px; font-size: 14px; }
+/* STOP: a dark fill sweeps across while it is held; full = servos off */
+#estop { background: linear-gradient(to right, #7f1d1d 50%, var(--bad) 50%) right / 200% 100% no-repeat; }
+#estop.arming { background-position: left; transition: background-position 1s linear; }
 
 .grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
 .grid.cols3 { grid-template-columns: repeat(3, 1fr); }

@@ -50,7 +50,26 @@ link.addEventListener('state', e => {
   else if (state === 'off') { current?.onHidden?.(); log('disconnected', 'sys'); }
 });
 connectBtn.addEventListener('click', () => link.connected ? link.disconnect() : link.connect());
-$('#estop').addEventListener('click', () => { current?.onHidden?.(); P.run(P.estop(), send); });
+
+// ---- STOP: tap = halt and hold (servos stay on), hold HOLD_OFF_MS = power the servos off ----
+// Continuous controls stop first (onHidden) so no drive line lands after the halt.
+const HOLD_OFF_MS = 1000;
+const estop = $('#estop');
+let armTimer = null, heldOff = false;
+const disarm = () => { clearTimeout(armTimer); armTimer = null; estop.classList.remove('arming'); };
+estop.addEventListener('pointerdown', () => {
+  heldOff = false; estop.classList.add('arming');
+  armTimer = setTimeout(() => {
+    disarm(); heldOff = true;
+    current?.onHidden?.(); send(P.off()); log('STOP held: servos off', 'sys');
+  }, HOLD_OFF_MS);
+});
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) estop.addEventListener(ev, disarm);
+estop.addEventListener('contextmenu', e => e.preventDefault());
+estop.addEventListener('click', () => {
+  if (heldOff) { heldOff = false; return; }   // the long press already powered off
+  current?.onHidden?.(); send(P.halt());
+});
 
 // ---- tabs ----
 let current = null;
