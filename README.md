@@ -1,9 +1,13 @@
 # Quadpod control page
 
 Bluetooth control page for the quadpod robot. Open it in Chrome on Android, press **Connect** and pick
-the device named "quadpod". Later connects reuse that device without the chooser where Chrome supports
-it, a dropped link is retried automatically, errors show as a toast, and the screen stays awake while
-connected. Uses Web Bluetooth with the Nordic UART Service, so it must be served over
+the device named "quadpod". After that the page connects on its own whenever it is open and the robot is
+in range (on load, and again after a lost link), with no tap; the header shows "waiting for quadpod…"
+meanwhile. Errors show as a toast, and the screen stays awake while connected.
+
+Remembering the robot needs `navigator.bluetooth.getDevices`, which Chrome on Android may keep behind
+`chrome://flags/#enable-web-bluetooth-new-permissions-backend` (set it to Enabled, relaunch). Without it
+every page load needs a Connect tap and the chooser. Uses Web Bluetooth with the Nordic UART Service, so it must be served over
 https (GitHub Pages) or from an origin allowed by the Chrome flag below.
 
 Live: https://ccirone2.github.io/quadpod-control/
@@ -27,7 +31,7 @@ a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), ho
 index.html         shell only
 style.css          tokens (light + dark), layout, shared components
 js/app.js          tab registry, header wiring, shared log buffer
-js/ble.js          Link: Web Bluetooth NUS transport, remembered device, auto-reconnect, send queue
+js/ble.js          Link: Web Bluetooth NUS transport, remembered device, auto-connect, send queue
                    (events: state, line, tx, error, info)
 js/protocol.js     tables (GAITS, SPEED, STRIDE, RESEND_MS, ANIMS, POSTURES, HIDDEN), then one builder per command in protocol group order
 js/ui.js           DOM helpers: h(), store, throttle(), slider(), segmented(), card()

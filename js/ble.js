@@ -1,5 +1,5 @@
 // BLE link to the robot: Nordic UART Service over Web Bluetooth.
-// Events: 'state' {state, name, reconnecting}  state = 'off' | 'busy' | 'on'
+// Events: 'state' {state, name, reconnecting, waiting}  state = 'off' | 'busy' | 'on'
 //         'line'  {text}         one reply line from the robot
 //         'tx'    {text}         a command we sent
 //         'error' {text}
@@ -7,7 +7,9 @@
 //
 // Connecting reuses the device picked last time when the browser allows it (navigator.bluetooth.getDevices),
 // so the chooser only opens on the first connect or after the remembered device could not be reached.
-// A dropped link (not one the user closed) is retried a few times before giving up.
+// A dropped link (not one the user closed) is retried a few times, then the page listens for the robot.
+// Listening (listen(), also run on page load) needs no tap: it waits for the remembered device to advertise
+// (watchAdvertisements, or a quiet connect attempt every POLL_MS where that is missing) and connects.
 
 const NUS = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
@@ -15,6 +17,7 @@ const TX  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
 const CHUNK = 20;                             // bytes per write: the page cannot see the MTU, and 20 always fits
 const CONNECT_MS = 8000;                      // give up on one GATT connect after this long
 const RETRY_MS = [1000, 2000, 3000, 5000, 8000];   // reconnect delays after an unexpected drop
+const POLL_MS = 5000;                         // listening without watchAdvertisements: try a connect this often
 
 const timeout = (promise, ms, what) => Promise.race([promise,
   new Promise((_, reject) => setTimeout(() => reject(new Error(what + ' timed out')), ms))]);
@@ -31,6 +34,9 @@ export class Link extends EventTarget {
     this.pumping = false;
     this.userClosed = false;    // true after disconnect(): do not reconnect
     this.useChooser = false;    // the remembered device failed: next connect opens the chooser
+    this.listening = false;     // waiting for the remembered device to come into range (listen())
+    this.watch = null;          // AbortController of the current advertisement wait
+    this.attempt = null;        // a listener's connect in flight
     this.onValue = e => this.onData(e.target.value);
     this.onDrop = () => this.dropped();
   }
@@ -41,7 +47,8 @@ export class Link extends EventTarget {
   emit(type, detail) { this.dispatchEvent(new CustomEvent(type, { detail })); }
   setState(state, reconnecting = false) {
     this.state = state;
-    this.emit('state', { state, reconnecting, name: this.device?.name || 'quadpod' });
+    this.emit('state', { state, reconnecting, waiting: this.listening && state === 'off',
+                         name: this.device?.name || 'quadpod' });
   }
 
   // A device the user already granted, if the browser supports getDevices.
@@ -53,10 +60,55 @@ export class Link extends EventTarget {
     } catch { return null; }
   }
 
+  // Connect to the remembered robot without a tap, whenever it is in range. Stops on connect, on
+  // disconnect() and when Connect is tapped. Does nothing if the browser cannot remember devices.
+  async listen() {
+    if (!this.supported || this.userClosed || this.listening || this.state !== 'off') return;
+    const device = await this.remembered();
+    if (!device || this.userClosed || this.listening || this.state !== 'off') return;
+    this.device = device;
+    this.listening = true;
+    this.setState('off');
+    while (this.listening) {
+      this.watch = new AbortController();
+      const heard = await this.waitFor(device, this.watch.signal);
+      this.watch.abort();                               // stop watching before connecting
+      if (!heard || !this.listening) break;
+      this.attempt = this.open(device);
+      try { await this.attempt; break; }
+      catch { try { device.gatt.disconnect(); } catch {} this.rx = null; }   // cancel a connect still pending
+      finally { this.attempt = null; }
+    }
+    this.listening = false;
+    if (this.userClosed && this.device?.gatt?.connected) this.device.gatt.disconnect();
+  }
+
+  stopListening() {
+    if (!this.listening) return;
+    this.listening = false;
+    this.watch?.abort();
+  }
+
+  // Resolves true when the device is worth a connect attempt: it advertised or, where the browser cannot
+  // watch advertisements, POLL_MS passed. Resolves false if the wait is aborted.
+  waitFor(device, signal) {
+    return new Promise(resolve => {
+      signal.addEventListener('abort', () => resolve(false), { once: true });
+      const poll = () => setTimeout(() => resolve(true), POLL_MS);
+      if (!device.watchAdvertisements) { poll(); return; }
+      device.addEventListener('advertisementreceived', () => resolve(true), { once: true, signal });
+      try { device.watchAdvertisements({ signal }).catch(poll); } catch { poll(); }
+    });
+  }
+
   async connect() {
     if (!this.supported) { this.emit('error', { text: 'Web Bluetooth is not available in this browser' }); return false; }
     this.userClosed = false;
+    this.stopListening();
     this.setState('busy');
+    if (this.attempt) {                                 // the listener is already connecting: let it finish
+      try { await this.attempt; return true; } catch {}
+    }
     try {
       let device = await this.remembered();
       const known = !!device;
@@ -95,6 +147,7 @@ export class Link extends EventTarget {
 
   disconnect() {
     this.userClosed = true;
+    this.stopListening();
     this.pending = [];
     if (this.device?.gatt?.connected) this.device.gatt.disconnect();
     else { this.rx = null; this.setState('off'); }
@@ -116,7 +169,8 @@ export class Link extends EventTarget {
       catch {}
     }
     this.setState('off');
-    this.emit('error', { text: 'could not reconnect; tap Connect to try again' });
+    this.emit('info', { text: 'link lost; will connect when quadpod is back' });
+    this.listen();
   }
 
   onData(value) {

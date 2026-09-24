@@ -79,9 +79,10 @@ const ctx = {
 // ---- header status line ----
 let linkState = { state: 'off', name: 'quadpod', reconnecting: false };
 function showStatus() {
-  const { state, name, reconnecting } = linkState;
+  const { state, name, reconnecting, waiting } = linkState;
   status.textContent = state === 'on' ? (playing ? 'playing ' + P.animLabel(playing) : 'connected to ' + name)
-    : state === 'busy' ? (reconnecting ? 'reconnecting…' : 'connecting…') : 'not connected';
+    : state === 'busy' ? (reconnecting ? 'reconnecting…' : 'connecting…')
+    : waiting ? 'waiting for ' + name + '…' : 'not connected';
 }
 
 // ---- link events ----
@@ -110,6 +111,7 @@ link.addEventListener('state', e => {
   wasOn = state === 'on';
 });
 connectBtn.addEventListener('click', () => link.connected ? link.disconnect() : link.connect());
+link.listen();                                    // connect on its own when the remembered robot is in range
 
 // ---- STOP: tap = halt and hold (servos stay on), hold HOLD_OFF_MS = power the servos off ----
 // Continuous controls stop first (onHidden) so no drive line lands after the halt.
