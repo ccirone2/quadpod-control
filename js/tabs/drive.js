@@ -4,7 +4,6 @@
 import * as P from '../protocol.js';
 import { h, card, slider, segmented, throttle, store } from '../ui.js';
 
-const RESEND_MS = P.RESEND_MS;   // stick update throttle; while touched the drive line is also resent every 2x this
 const DEAD = 0.10;       // stick and strafe dead zone, fraction of full scale
 const buzz = () => navigator.vibrate?.(10);   // haptic tick when a control leaves its dead zone (Android)
 // Dead zone, then rescale so motion starts from 0 just past its edge: 0..1 in, 0..1 out.
@@ -28,12 +27,12 @@ export default {
     const show = ({ vx, vy, wz }) => { readout.vx.textContent = Math.round(vx); readout.vy.textContent = Math.round(vy); readout.wz.textContent = Math.round(wz); };
 
     const push = quiet => { const v = velocity(); show(v); ctx.send(P.gait(s.gait, v.vx, v.vy, v.wz), { quiet, key: 'drive' }); };
-    const pushThrottled = throttle(() => push(true), RESEND_MS);
+    const pushThrottled = throttle(() => push(true), P.RESEND_MS);
 
-    // Something is being touched: send now and keep resending until everything is released.
+    // Something is being touched: send now and keep resending (every 2 x RESEND_MS) until everything is released.
     const update = () => {
       const moving = s.sx || s.sy || s.strafe;
-      if (moving && !s.active) { s.active = true; ctx.send(P.stride(stride), { quiet: true, key: 'stride' }); push(false); s.timer = setInterval(() => push(true), RESEND_MS * 2); }
+      if (moving && !s.active) { s.active = true; ctx.send(P.stride(stride), { quiet: true, key: 'stride' }); push(false); s.timer = setInterval(() => push(true), P.RESEND_MS * 2); }
       else if (moving) pushThrottled();
       else stop();
     };
@@ -89,7 +88,7 @@ export default {
       onRelease: () => { strafeSl.set(0); s.strafe = 0; s.strafeDead = true; update(); } });
 
     // --- step size and gait ---
-    const sendStride = throttle(() => ctx.send(P.stride(stride), { quiet: true, key: 'stride' }), RESEND_MS);
+    const sendStride = throttle(() => ctx.send(P.stride(stride), { quiet: true, key: 'stride' }), P.RESEND_MS);
     const step = slider('Step', { min: P.STRIDE.MIN, max: P.STRIDE.MAX, value: stride, format: v => v + ' mm', onInput: v => {
       stride = v; store.set('stride', v);
       sendStride();
@@ -105,7 +104,8 @@ export default {
             h('span', {}, 'vx ', readout.vx), h('span', {}, 'vy ', readout.vy), h('span', {}, 'wz ', readout.wz)) : null,
         )),
       card('Settings', null,
-        h('div', { class: 'needs-link' }, step.el, h('div', { class: 'mt' }, gaitSeg.el))),
+        h('div', { class: 'needs-link' }, step.el,
+          gaits.length ? h('div', { class: 'mt' }, gaitSeg.el) : h('p', { class: 'note' }, "Connect to load the robot’s gaits."))),
     );
 
     this.halt = () => { releaseStick(); stop(); };

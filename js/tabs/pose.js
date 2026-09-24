@@ -20,11 +20,11 @@ const EXTRA = [
 const FLIP = new Set([...AXES, ...EXTRA].filter(a => a.flip).map(a => a.key));
 // Whole-body postures (each one resets the sliders to zero): the robot's catalog entries tagged posture, minus
 // P.OFF_PAGE. Stand is the H command (home stance, level) and rest the R command; the rest play as animations.
+const POSTURE_LABELS = { lie: 'Lie' };   // short on this grid ("Lie down" in the status line)
 const postures = ctx => ctx.catalog.anims.filter(a => a.posture && !P.OFF_PAGE.includes(a.name)).map(a => ({
   label: POSTURE_LABELS[a.name] ?? P.label(a.name), primary: a.name === 'stand',
   cmd: a.name === 'stand' ? P.home : a.name === 'rest' ? P.rest : () => P.anim(a.id),
 }));
-const POSTURE_LABELS = { lie: 'Lie' };   // short on this grid ("Lie down" in the status line)
 // Body-pose presets (feet planted): set the sliders and send one P command; unlisted axes go to 0. Add more
 // here, they appear as chips.
 const PRESETS = [

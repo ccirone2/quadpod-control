@@ -1,6 +1,6 @@
 // Command builders for the quadpod text protocol (see quadpod/command.cpp).
-// Tables first, then one builder per command in the firmware's group order (general, cal, motion, anim,
-// gait, debug). Every builder returns one command line as a string (no newline).
+// Tables first, then one builder per command the page sends, in the firmware's group order (general, raw, cal,
+// motion, anim, gait, debug; the page sends nothing from raw). Every builder returns one command line (no newline).
 
 // ---- tables ----
 // The animations and gaits themselves come from the robot (# catalog, js/catalog.js); only player words live here.
