@@ -1,5 +1,6 @@
-// Pose tab: one Poses card (whole-body postures, then standing body presets), and the body height / roll /
-// pitch / yaw sliders (feet stay planted) with x/y shift under "more".
+// Pose tab: a Postures card (whole-body positions the robot moves into: stand, rest, lie...) and a Poses card
+// (body pose over planted feet: preset chips, then the height / roll / pitch / yaw sliders with x/y shift
+// under "more"). A preset just sets the sliders.
 import * as P from '../protocol.js';
 import { h, card, slider, throttle, store } from '../ui.js';
 
@@ -16,7 +17,7 @@ const EXTRA = [
   { key: 'y', label: 'Forward',  min: -35, max: 35 },
 ];
 // Whole-body postures (each one resets the sliders to zero). Stand is the H command: home stance, level.
-const POSES = [
+const POSTURES = [
   { label: 'Stand', cmd: P.home, primary: true },
   { label: 'Rest',  cmd: P.rest },
   { label: 'Lie',   cmd: P.lie },
@@ -62,13 +63,14 @@ export default {
     const reset = () => { for (const k in cur) { cur[k] = 0; sliders[k].set(0); } send.cancel(); };
 
     root.append(
-      card('Poses', null,
+      card('Postures', 'whole body',
         h('div', { class: 'grid cols5 needs-link' },
-          POSES.map(p => h('button', { class: 'btn' + (p.primary ? '' : ' soft'), onclick: () => { reset(); ctx.send(p.cmd()); } }, p.label)),
-          PRESETS.map(p => h('button', { class: 'btn soft', onclick: () => apply(p.pose) }, p.label)))),
-      card('Body pose', h('label', { class: 'toggle' }, snapBox, 'Snap back'),
+          POSTURES.map(p => h('button', { class: 'btn' + (p.primary ? '' : ' soft'), onclick: () => { reset(); ctx.send(p.cmd()); } }, p.label)))),
+      card('Poses', h('label', { class: 'toggle' }, snapBox, 'Snap back'),
         h('div', { class: 'needs-link' },
-          AXES.map(make),
+          h('div', { class: 'grid cols5' },
+            PRESETS.map(p => h('button', { class: 'btn soft', onclick: () => apply(p.pose) }, p.label))),
+          h('div', { class: 'mt' }, AXES.map(make)),
           h('details', {}, h('summary', {}, 'More'), EXTRA.map(make)))),
     );
   },

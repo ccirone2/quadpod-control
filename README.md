@@ -21,7 +21,7 @@ a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), ho
 | Tab     | What it does |
 |---------|--------------|
 | Drive   | Proportional joystick (up/down forward/back, left/right rotate, diagonals arc; release to stop), Strafe slider that recentres on release, Step slider (stride mm; the firmware adapts the cadence), Creep/Trot |
-| Pose    | Poses card: postures (Stand, Rest, Lie, Ball, Splay) plus body-pose presets (Sit, Tall, Crouch, Peek, Lean); Body pose card: Height / Lean (roll) / Tilt (pitch) / Turn (yaw) sliders, Sideways / Forward shift under More, Snap back toggle (default on) returns a slider to centre on release and centres everything when switched on |
+| Pose    | Postures card (whole-body positions): Stand, Rest, Lie, Ball, Splay; Poses card (feet planted): presets Sit, Tall, Crouch, Peek, Lean, then Height / Lean (roll) / Tilt (pitch) / Turn (yaw) sliders, Sideways / Forward shift under More, Snap back toggle (default on) returns a slider to centre on release and centres everything when switched on |
 | Actions | Every animation except the postures (on the Pose tab) and the idle fidgets (hidden on purpose), plus Play all (demo); highlights what the robot reports playing |
 | Console | Developer mode only (long-press the "Quadpod" title for 1 s). Reply log, raw command line with history, quick commands |
 
@@ -59,8 +59,8 @@ export default {
 Give continuous controls a `key` (one per stream, e.g. `'drive'`): a newer line replaces an unsent older
 one instead of queueing behind it. `urgent` is for STOP-like lines only. Add the module
 to `TABS` in `js/app.js`. Mark controls that need a connection with class `needs-link` and they dim until
-connected. New commands go in `js/protocol.js` under their protocol group; new postures in `POSES` and new
-standing presets in `PRESETS`, both in `js/tabs/pose.js`. Conventions: sentence-case player words for labels (developer details only when `ctx.dev`), `store.get/set`
+connected. New commands go in `js/protocol.js` under their protocol group; new postures in `POSTURES` and new
+body-pose presets in `PRESETS`, both in `js/tabs/pose.js`. Conventions: sentence-case player words for labels (developer details only when `ctx.dev`), `store.get/set`
 for anything remembered, `P.RESEND_MS` for continuous controls, the `mt` class instead of inline margins.
 
 ## Testing locally
