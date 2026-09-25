@@ -67,8 +67,8 @@ function setPlaying(name) {
 // ---- the robot's animations and gaits: asked for on every connect; a changed list remounts the tab ----
 const catalog = new Catalog(() => { if (current) show(current.id, true); });
 
-// ---- developer mode: the Console tab and raw numbers; off for players ----
-let dev = store.get('dev') === '1';
+// ---- developer mode: the Console tab and raw numbers; off for players, and off on every load ----
+let dev = false;
 
 const ctx = {
   link, send, log, catalog, toast,
@@ -158,7 +158,6 @@ function buildNav() {
 }
 function setDev(on) {
   dev = on;
-  store.set('dev', on ? '1' : '0');
   buildNav();
   show(current?.id, true);                         // remount: the tab may show more or less; a dev tab falls back
   toast(on ? 'Developer mode on' : 'Developer mode off');
