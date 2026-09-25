@@ -10,6 +10,8 @@ export const GAIT = { STOP: 0 };
 export const SPEED = { MAX_MM_S: 40, MAX_DEG_S: 30 };
 // Stride length (mm) for the step-size slider; the firmware adapts the cadence (U command).
 export const STRIDE = { MIN: 10, MAX: 50, DEFAULT: 30 };
+// Foot lift (step height, mm) for the lift slider, per gait (B command; the firmware allows 0..40).
+export const LIFT = { MIN: 5, MAX: 40 };
 // Continuous controls (drive, pose sliders) send at most once per RESEND_MS. The firmware's gait
 // watchdog zeroes the velocity after 1.5 s of silence, so a held stick resends well inside that.
 export const RESEND_MS = 100;
@@ -74,6 +76,8 @@ export const demo  = () => 'Y';
 export const gait  = (type, vx = 0, vy = 0, wz = 0) => `G ${r(type)} ${r(vx)} ${r(vy)} ${r(wz)}`;
 export const stopGait = (type = GAIT.STOP) => gait(type, 0, 0, 0);
 export const stride = mm => `U ${r(mm)}`;
+// Gait tuning: step height (mm) and cycle (ms) for one gait; the page keeps the robot's cycle and sets the height.
+export const tune = (type, stepMm, cycleMs) => `B ${r(stepMm)} ${r(cycleMs)} ${r(type)}`;
 
 // ---- debug ----
 export const query = () => 'Q';

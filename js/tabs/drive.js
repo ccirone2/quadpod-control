@@ -1,5 +1,6 @@
 // Drive tab: proportional joystick (up/down = vy forward/back, left/right = wz rotate, diagonals blend into an arc),
-// strafe slider (vx, recentres on release), step-size slider (stride mm, U command), gait choice.
+// strafe slider (vx, recentres on release), step-size slider (stride mm, U command), lift slider (step height per
+// gait, B command), gait choice.
 // Stick distance from centre is the only speed control.
 import * as P from '../protocol.js';
 import { h, card, slider, segmented, throttle, store } from '../ui.js';
@@ -16,6 +17,10 @@ export default {
   mount(root, ctx) {
     let stride = +store.get('stride') || P.STRIDE.DEFAULT;
     const gaits = ctx.catalog.gaits.map(g => ({ id: g.id, label: P.label(g.name) }));
+    // Lift per gait: what the page last set (remembered: the robot forgets B tuning on reboot), else the robot's own.
+    const liftOf = id => +store.get('lift.' + id) || ctx.catalog.gaits.find(g => g.id === id)?.stepH || 20;
+    const cycleOf = id => ctx.catalog.gaits.find(g => g.id === id)?.cycleMs || 1600;
+    const sendLift = () => ctx.send(P.tune(s.gait, liftOf(s.gait), cycleOf(s.gait)), { quiet: true, key: 'lift' });
     const s = { gait: gaits[0]?.id ?? 1, sx: 0, sy: 0, strafe: 0, active: false, timer: null, stickDead: true, strafeDead: true };
     const readout = { vx: h('b', {}, '0'), vy: h('b', {}, '0'), wz: h('b', {}, '0') };
 
@@ -32,7 +37,10 @@ export default {
     // Something is being touched: send now and keep resending (every 2 x RESEND_MS) until everything is released.
     const update = () => {
       const moving = s.sx || s.sy || s.strafe;
-      if (moving && !s.active) { s.active = true; ctx.send(P.stride(stride), { quiet: true, key: 'stride' }); push(false); s.timer = setInterval(() => push(true), P.RESEND_MS * 2); }
+      if (moving && !s.active) {
+        s.active = true; ctx.send(P.stride(stride), { quiet: true, key: 'stride' }); sendLift();
+        push(false); s.timer = setInterval(() => push(true), P.RESEND_MS * 2);
+      }
       else if (moving) pushThrottled();
       else stop();
     };
@@ -93,7 +101,12 @@ export default {
       stride = v; store.set('stride', v);
       sendStride();
     } });
-    const gaitSeg = segmented(gaits, s.gait, id => { s.gait = id; if (s.active) push(false); });
+    const sendLiftThrottled = throttle(sendLift, P.RESEND_MS);
+    const lift = slider('Lift', { min: P.LIFT.MIN, max: P.LIFT.MAX, value: liftOf(s.gait), format: v => v + ' mm', onInput: v => {
+      store.set('lift.' + s.gait, v);
+      sendLiftThrottled();
+    } });
+    const gaitSeg = segmented(gaits, s.gait, id => { s.gait = id; lift.set(liftOf(id)); if (s.active) { sendLift(); push(false); } });
 
     root.append(
       card('Drive', 'stick = speed and direction, step = stride length',
@@ -103,8 +116,8 @@ export default {
           ctx.dev ? h('div', { class: 'readout' },      // developer mode only
             h('span', {}, 'vx ', readout.vx), h('span', {}, 'vy ', readout.vy), h('span', {}, 'wz ', readout.wz)) : null,
         )),
-      card('Settings', null,
-        h('div', { class: 'needs-link' }, step.el,
+      card('Settings', 'lift is kept per gait',
+        h('div', { class: 'needs-link' }, step.el, lift.el,
           gaits.length ? h('div', { class: 'mt' }, gaitSeg.el) : h('p', { class: 'note' }, "Connect to load the robot’s gaits."))),
     );
 

@@ -91,8 +91,8 @@ body {
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips .btn { padding: 8px 12px; font-size: 14px; }
 
-.slider { display: grid; grid-template-columns: 72px 1fr 44px; align-items: center; gap: 8px; font-size: 15px; margin: 14px 0; }
-.slider output { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.slider { display: grid; grid-template-columns: 72px 1fr 52px; align-items: center; gap: 8px; font-size: 15px; margin: 14px 0; }
+.slider output { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
 input[type=range] { width: 100%; accent-color: var(--key); }
 /* big touch targets: tall track, 32 px thumb */
 .slider input[type=range] { -webkit-appearance: none; appearance: none; height: 44px; background: transparent; margin: 0; touch-action: none; }

@@ -34,7 +34,7 @@ export class Catalog {
       return true;
     }
     if (w[0] === 'gait') {
-      this.pending.gaits.push({ id: +w[1], name: w[2] });   // the tuning is the console's business
+      this.pending.gaits.push({ id: +w[1], name: w[2], stepH: +w[3], cycleMs: +w[4] });   // live B tuning
       return true;
     }
     return false;
