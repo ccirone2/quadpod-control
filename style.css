@@ -106,6 +106,22 @@ details summary { font-size: 13px; color: var(--muted); cursor: pointer; margin:
 .note { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
 .mt { margin-top: 8px; }
 
+/* ---- pose editor: leg picker laid out like the robot seen from above, saved-pose rows ---- */
+.legs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.legs .btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; }
+.legs .btn small { font-size: 12px; font-weight: 400; color: var(--muted); }
+.legs .btn.sel { background: var(--key); color: var(--key-ink); }
+.legs .btn.sel small { color: inherit; opacity: .85; }
+.legs .btn.up { outline: 3px solid var(--warn); outline-offset: -3px; }
+.row { display: flex; gap: 8px; align-items: center; }
+.grow { flex: 1 1 auto; min-width: 0; }
+.field {
+  font: inherit; font-size: 15px; padding: 10px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+}
+.saved { display: grid; gap: 6px; margin-top: 8px; }
+.saved .btn.grow { text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 /* ---- joystick ---- */
 .joystick {
   position: relative; width: min(240px, 70vw); aspect-ratio: 1; margin: 4px auto; border-radius: 50%;

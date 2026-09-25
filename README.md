@@ -26,7 +26,7 @@ a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), ho
 | Tab     | What it does |
 |---------|--------------|
 | Drive   | Proportional joystick (up/down forward/back, left/right rotate, diagonals arc; release to stop), Strafe slider that recentres on release, Step slider (stride mm; the firmware adapts the cadence), Creep/Trot. Stick and strafe share a 10 % dead zone and give a short vibration as they leave it |
-| Pose    | Postures card (whole-body positions): Stand, Rest, Lie, Ball, Splay; Poses card (feet planted): presets Sit, Tall, Crouch, Chin up, Lean, then Height / Lean (roll) / Tilt (pitch) / Turn (yaw) sliders, Sideways / Forward shift under More, Snap back toggle (default on) returns a slider to centre on release and centres everything when switched on |
+| Pose    | Postures card (whole-body positions): Stand, Rest, Lie, Ball, Splay; Poses card (feet planted): presets Sit, Tall, Crouch, Chin up, Lean, then Height / Lean (roll) / Tilt (pitch) / Turn (yaw) sliders, Sideways / Forward shift under More, Snap back toggle (default on) returns a slider to centre on release and centres everything when switched on; Legs card (the pose editor): pick a leg, Swing / Raise / Knee sliders (`^`; raised legs stay up while the body moves), Raise / Plant / Plant all, Balance (default on) leans the body toward the other three feet before the first leg lifts; Saved card: name and save the current pose on this device, tap to recall, ✕ to delete, Export / Import as text, Copy (developer mode: the commands and a firmware gesture key) |
 | Actions | Every animation except the postures (on the Pose tab) and the idle fidgets (hidden on purpose), each with an icon, plus Play all (demo); highlights what the robot reports playing |
 | Console | Developer mode only (long-press the "Quadpod" title for 1 s). Reply log, raw command line with history, quick commands |
 
@@ -40,8 +40,9 @@ manifest.webmanifest, sw.js, icons/   installable app: manifest, offline service
 js/app.js          tab registry, header wiring, shared log buffer
 js/ble.js          Link: Web Bluetooth NUS transport, remembered device, auto-connect, send queue
                    (events: state, line, tx, error, info)
-js/protocol.js     tables (GAIT, SPEED, STRIDE, RESEND_MS, LABELS, ICONS, IDLE_REST_MIN, OFF_PAGE), then one builder per command in protocol group order
+js/protocol.js     tables (GAIT, SPEED, STRIDE, RESEND_MS, LABELS, ICONS, IDLE_REST_MIN, OFF_PAGE), then one builder per command in protocol group order (limb / plant send ^)
 js/catalog.js      the robot's animation and gait list (# command), asked for on every connect and remembered
+js/poses.js        poses saved from the Pose tab (localStorage 'quadpod.poses'), export/import, as-code text
 js/ui.js           DOM helpers: h(), store, throttle(), slider(), icon(), segmented(), card()
 js/tabs/*.js       one module per tab
 ```
@@ -62,7 +63,7 @@ export default {
 };
 ```
 
-`ctx` gives you `send(cmd, {quiet, key, urgent})`, `log(text, cls)`, `link`, `dev` (developer mode),
+`ctx` gives you `send(cmd, {quiet, key, urgent})`, `log(text, cls)`, `toast(text, cls)`, `link`, `dev` (developer mode),
 `playing()` / `onPlaying(fn)` (the animation the robot reports, or null), `catalog`, and the log buffer helpers.
 Give continuous controls a `key` (one per stream, e.g. `'drive'`): a newer line replaces an unsent older
 one instead of queueing behind it. `urgent` is for STOP-like lines only. Add the module

@@ -1,10 +1,10 @@
 // Service worker: makes the page installable and loadable with no internet (the robot link is Bluetooth).
 // Network first, so a push to Pages shows up on the next load; the cache is only the offline fallback.
 // Bump VERSION when the SHELL list changes.
-const VERSION = 'quadpod-v1';
+const VERSION = 'quadpod-v2';
 const SHELL = [
   './', 'index.html', 'style.css', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
-  'js/app.js', 'js/ble.js', 'js/catalog.js', 'js/protocol.js', 'js/ui.js',
+  'js/app.js', 'js/ble.js', 'js/catalog.js', 'js/poses.js', 'js/protocol.js', 'js/ui.js',
   'js/tabs/drive.js', 'js/tabs/pose.js', 'js/tabs/actions.js', 'js/tabs/console.js',
 ];
 

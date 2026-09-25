@@ -62,6 +62,9 @@ export const home  = () => 'H';
 export const rest  = () => 'R';
 export const pose  = ({ x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0 } = {}) =>
   `P ${r(x)} ${r(y)} ${r(z)} ${r(roll)} ${r(pitch)} ${r(yaw)}`;
+// Raise one leg (0 FL, 1 FR, 2 RL, 3 RR) to these joint angles (deg, body-relative); P keeps it raised.
+export const limb  = (leg, { coxa = 0, femur = 0, tibia = 0 }) => `^ ${r(leg)} ${r(coxa)} ${r(femur)} ${r(tibia)}`;
+export const plant = leg => `^ ${r(leg)}`;   // put a raised leg down again
 
 // ---- anim ----
 export const anim  = id => `A ${r(id)}`;

@@ -71,7 +71,7 @@ const catalog = new Catalog(() => { if (current) show(current.id, true); });
 let dev = store.get('dev') === '1';
 
 const ctx = {
-  link, send, log, catalog,
+  link, send, log, catalog, toast,
   get dev() { return dev; },
   playing: () => playing,
   onPlaying: fn => { playSubs.add(fn); return () => playSubs.delete(fn); },
