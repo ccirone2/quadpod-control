@@ -85,15 +85,30 @@ export default {
     for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) stick.addEventListener(ev, e => { if (e.pointerId === pid) releaseStick(); });
     stick.addEventListener('contextmenu', e => e.preventDefault());
 
-    // --- strafe slider: dead zone round the centre like the stick, recentres on release ---
-    const strafeSl = slider('Strafe', { min: -100, max: 100, value: 0, format: v => v + '%',
-      onInput: v => {
-        const a = Math.abs(v / 100);
-        if (s.strafeDead && a >= DEAD) buzz();
-        s.strafeDead = a < DEAD;
-        s.strafe = Math.sign(v) * pastDead(a); update();
-      },
-      onRelease: () => { strafeSl.set(0); s.strafe = 0; s.strafeDead = true; update(); } });
+    // --- strafe: a centred slider with Left / Right at its ends, not a setting like the ones below it. The track
+    // fills from the centre to the thumb and the side it moves toward lights up. Dead zone round the centre like the
+    // stick, recentres on release ---
+    const strafeIn = h('input', { type: 'range', min: -100, max: 100, value: 0, 'aria-label': 'Strafe left or right' });
+    const sides = [h('span', { class: 'side' }, '‹ Left'), h('span', { class: 'side' }, 'Right ›')];
+    const showStrafe = v => {
+      const p = (v + 100) / 2;
+      strafeIn.style.setProperty('--lo', Math.min(50, p) + '%'); strafeIn.style.setProperty('--hi', Math.max(50, p) + '%');
+      sides[0].classList.toggle('on', v <= -DEAD * 100); sides[1].classList.toggle('on', v >= DEAD * 100);
+    };
+    const strafeSl = {
+      el: h('div', { class: 'strafe' }, sides[0], strafeIn, sides[1]),
+      set: v => { strafeIn.value = v; showStrafe(v); },
+    };
+    strafeIn.addEventListener('input', () => {
+      const v = +strafeIn.value, a = Math.abs(v / 100);
+      showStrafe(v);
+      if (s.strafeDead && a >= DEAD) buzz();
+      s.strafeDead = a < DEAD;
+      s.strafe = Math.sign(v) * pastDead(a); update();
+    });
+    for (const ev of ['pointerup', 'pointercancel', 'keyup'])
+      strafeIn.addEventListener(ev, () => { strafeSl.set(0); s.strafe = 0; s.strafeDead = true; update(); });
+    showStrafe(0);
 
     // --- step size and gait ---
     const sendStride = throttle(() => ctx.send(P.stride(stride), { quiet: true, key: 'stride' }), P.RESEND_MS);

@@ -54,6 +54,8 @@ const JOINTS = [
   { key: 'femur', label: 'Raise', min: -30, max: 90 },
   { key: 'tibia', label: 'Knee',  min: -55, max: 90 },
 ];
+// The Saved card is parked until its UX is reworked (PLAN.md open items); the code stays, the card is not shown.
+const SHOW_SAVED = false;
 const STAND = { coxa: 0, femur: 22, tibia: -28 };   // a planted leg at the home stance (IK of the firmware's HOME_*)
 const LIFT = { coxa: 0, femur: 60, tibia: -20 };    // the Raise button: clear of the floor, knee tucked
 
@@ -208,13 +210,13 @@ export default {
             h('button', { class: 'btn soft', onclick: () => plant(sel) }, 'Plant'),
             h('button', { class: 'btn soft', onclick: () => legs.forEach((l, i) => plant(i)) }, 'Plant all')),
           h('p', { class: 'note' }, 'Set the body first (Snap back off), then raise legs. Balance leans the body away before the first leg lifts.'))),
-      card('Saved', 'on this phone',
+      SHOW_SAVED ? card('Saved', 'on this phone',
         h('div', { class: 'row' }, nameIn, h('button', { class: 'btn', onclick: saveNow }, 'Save')),
         savedList,
         h('details', {}, h('summary', {}, 'Move to another device'),
           h('div', { class: 'grid mt' },
             h('button', { class: 'btn soft sm', onclick: exportAll }, 'Export'),
-            h('button', { class: 'btn soft sm', onclick: importAll }, 'Import'))))],
+            h('button', { class: 'btn soft sm', onclick: importAll }, 'Import')))) : null],
     ));
     showLegs(); showSaved();
   },

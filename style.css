@@ -138,7 +138,23 @@ details summary { font-size: 13px; color: var(--muted); cursor: pointer; margin:
 }
 .joystick.live .knob { transition: none; }
 .drive-row { margin-top: 8px; }
-.drive-row .slider { margin: 0; }
+/* strafe: Left / Right at the ends, the track fills from the centre mark (--lo..--hi, set by drive.js), pill thumb */
+.strafe { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; font-size: 14px; }
+.strafe .side { color: var(--muted); font-weight: 500; white-space: nowrap; transition: color .1s; }
+.strafe .side.on { color: var(--key); font-weight: 700; }
+.strafe input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 48px; margin: 0; background: transparent; touch-action: none; --lo: 50%; --hi: 50%; }
+.strafe input[type=range]::-webkit-slider-runnable-track {
+  height: 20px; border-radius: 10px; border: 1px solid var(--line);
+  background: linear-gradient(var(--muted), var(--muted)) center / 2px 100% no-repeat,
+    linear-gradient(to right, var(--soft) var(--lo), var(--key) var(--lo), var(--key) var(--hi), var(--soft) var(--hi));
+}
+.strafe input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 44px; height: 32px; margin-top: -7px; border-radius: 16px; background: var(--panel); border: 3px solid var(--key); box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.strafe input[type=range]::-moz-range-track {
+  height: 20px; border-radius: 10px; border: 1px solid var(--line);
+  background: linear-gradient(var(--muted), var(--muted)) center / 2px 100% no-repeat,
+    linear-gradient(to right, var(--soft) var(--lo), var(--key) var(--lo), var(--key) var(--hi), var(--soft) var(--hi));
+}
+.strafe input[type=range]::-moz-range-thumb { width: 38px; height: 26px; border-radius: 13px; background: var(--panel); border: 3px solid var(--key); }
 
 /* ---- toast: above the bottom nav ---- */
 #toast {
