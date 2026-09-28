@@ -23,7 +23,7 @@ export default {
 
     root.append(
       card('Animations', null,
-        chips.length ? h('div', { class: 'grid cols3 needs-link' }, chips) : h('p', { class: 'note' }, "Connect to load the robot’s moves."),
+        chips.length ? h('div', { class: 'grid cols3 anims needs-link' }, chips) : h('p', { class: 'note' }, "Connect to load the robot’s moves."),
         h('div', { class: 'grid mt needs-link' }, demoBtn)),
     );
   },

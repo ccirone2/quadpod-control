@@ -23,6 +23,10 @@ Sticky header (status, Connect, STOP) + one tab of content + bottom tab bar. STO
 a tap sends `!` (stop and hold, servos stay powered; a walk plants its feet), holding it for 1 s sends `X`
 (servos off, the robot drops). A BLE disconnect halts the robot the same way as a tap.
 
+The layout is phone first. From 760 px wide (a tablet, or a phone on its side) the cards sit in two columns
+(Drive | Settings; Postures + Poses | Legs + Saved; groups made with `cols()` in `js/ui.js`), the stick is bigger,
+Actions fills more columns and the tab bar centres.
+
 | Tab     | What it does |
 |---------|--------------|
 | Drive   | Proportional joystick (up/down forward/back, left/right rotate, diagonals arc; release to stop), Strafe slider that recentres on release, Step slider (stride mm; the firmware adapts the cadence), Lift slider (step height, `B`, remembered per gait), the gaits from the robot's catalog (Creep / Trot / Stalk). Stick and strafe share a 10 % dead zone and give a short vibration as they leave it |

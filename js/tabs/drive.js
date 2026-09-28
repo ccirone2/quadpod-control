@@ -3,7 +3,7 @@
 // gait, B command), gait choice.
 // Stick distance from centre is the only speed control.
 import * as P from '../protocol.js';
-import { h, card, slider, segmented, throttle, store } from '../ui.js';
+import { h, card, cols, slider, segmented, throttle, store } from '../ui.js';
 
 const DEAD = 0.10;       // stick and strafe dead zone, fraction of full scale
 const buzz = () => navigator.vibrate?.(10);   // haptic tick when a control leaves its dead zone (Android)
@@ -108,7 +108,7 @@ export default {
     } });
     const gaitSeg = segmented(gaits, s.gait, id => { s.gait = id; lift.set(liftOf(id)); if (s.active) { sendLift(); push(false); } });
 
-    root.append(
+    root.append(cols(
       card('Drive', 'stick = speed and direction, step = stride length',
         h('div', { class: 'needs-link' },
           stick,
@@ -119,7 +119,7 @@ export default {
       card('Settings', 'lift is kept per gait',
         h('div', { class: 'needs-link' }, step.el, lift.el,
           gaits.length ? h('div', { class: 'mt' }, gaitSeg.el) : h('p', { class: 'note' }, "Connect to load the robot’s gaits."))),
-    );
+    ));
 
     this.halt = () => { releaseStick(); stop(); };
   },

@@ -65,3 +65,8 @@ export function segmented(options, value, onChange) {
 export function card(title, hint, ...children) {
   return h('section', { class: 'card' }, h('h2', {}, title, hint ? (typeof hint === 'string' ? h('span', { class: 'hint' }, hint) : hint) : null), ...children);
 }
+
+// Card groups that sit side by side on a tablet (style.css .cols) and stack in order on a phone.
+export function cols(...groups) {
+  return h('div', { class: 'cols' }, groups.map(g => h('div', { class: 'col' }, g)));
+}

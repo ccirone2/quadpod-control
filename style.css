@@ -164,3 +164,22 @@ details summary { font-size: 13px; color: var(--muted); cursor: pointer; margin:
   flex: 1; min-width: 0; font: 14px ui-monospace, Consolas, monospace; padding: 10px; border-radius: 10px;
   border: 1px solid var(--line); background: var(--panel); color: var(--ink);
 }
+
+/* ---- short screens (a phone on its side): the stick fits between the header and the nav ---- */
+@media (max-height: 560px) {
+  .joystick { width: clamp(140px, calc(100dvh - var(--top-h) - var(--nav-h) - 140px), 240px); }
+}
+
+/* ---- tablet: a wider column, card groups (ui.js cols) side by side, a bigger stick, a compact nav ---- */
+@media (min-width: 760px) {
+  #view { padding: 16px max(24px, calc((100% - 1040px) / 2)) 24px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .card { padding: 16px; }
+  .joystick { width: min(340px, 100%); }
+  .grid.anims { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  #tabs { grid-auto-columns: minmax(0, 150px); justify-content: center; }
+  #tabs button { flex-direction: row; gap: 8px; font-size: 14px; }
+}
+@media (min-width: 760px) and (max-height: 560px) {
+  .joystick { width: clamp(140px, calc(100dvh - var(--top-h) - var(--nav-h) - 140px), 340px); }
+}

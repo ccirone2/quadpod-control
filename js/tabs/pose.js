@@ -4,7 +4,7 @@
 // leg by leg) and a Saved card (poses kept on this device, js/poses.js). A preset just sets the sliders.
 import * as P from '../protocol.js';
 import * as Saved from '../poses.js';
-import { h, card, slider, throttle, store } from '../ui.js';
+import { h, card, cols, slider, throttle, store } from '../ui.js';
 
 // Ranges cover the legs' reach from the 60 mm standing height (the firmware stops a pose at the edge of reach).
 // Player labels: Lean = roll (side down), Tilt = pitch (+ nose up), Turn = yaw; Sideways = x, Forward = y.
@@ -188,7 +188,7 @@ export default {
     const reset = () => { for (const k in cur) setAxis(k, 0); send.cancel(); resetLegs(); };
     this.halt = () => { clearTimeout(liftTimer); liftTimer = null; send.cancel(); sendSel.cancel(); };
 
-    root.append(
+    root.append(cols([
       card('Postures', 'whole body',
         list.length ? h('div', { class: 'grid cols5 needs-link' },
           list.map(p => h('button', { class: 'btn' + (p.primary ? '' : ' soft'), onclick: () => { reset(); ctx.send(p.cmd()); } }, p.label)))
@@ -198,7 +198,7 @@ export default {
           h('div', { class: 'grid cols5' },
             PRESETS.map(p => h('button', { class: 'btn soft', onclick: () => apply(p.pose) }, p.label))),
           h('div', { class: 'mt' }, AXES.map(make)),
-          h('details', {}, h('summary', {}, 'More'), EXTRA.map(make)))),
+          h('details', {}, h('summary', {}, 'More'), EXTRA.map(make))))], [
       card('Legs', h('label', { class: 'toggle' }, balanceBox, 'Balance'),
         h('div', { class: 'needs-link' },
           h('div', { class: 'legs' }, legBtns),
@@ -214,8 +214,8 @@ export default {
         h('details', {}, h('summary', {}, 'Move to another device'),
           h('div', { class: 'grid mt' },
             h('button', { class: 'btn soft sm', onclick: exportAll }, 'Export'),
-            h('button', { class: 'btn soft sm', onclick: importAll }, 'Import')))),
-    );
+            h('button', { class: 'btn soft sm', onclick: importAll }, 'Import'))))],
+    ));
     showLegs(); showSaved();
   },
 
