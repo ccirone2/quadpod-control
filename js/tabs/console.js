@@ -1,5 +1,6 @@
 // Console tab: reply log plus a raw command line. The log buffer lives in app.js so nothing is lost
-// while another tab is showing; this tab only renders it.
+// while another tab is showing; this tab only renders it. Also the idle fidget switch (D): the page turns fidgets on
+// at every connect, and the box shows what the robot last reported (ctx.onIdle).
 import * as P from '../protocol.js';
 import { h, card } from '../ui.js';
 
@@ -18,7 +19,7 @@ export default {
       if (stick) log.scrollTop = log.scrollHeight;
     };
     render(ctx.entries());
-    this.unsub = ctx.onLog(() => render(ctx.entries()));
+    const unLog = ctx.onLog(() => render(ctx.entries()));
 
     const history = [];
     let hi = -1;
@@ -37,7 +38,15 @@ export default {
       else if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.max(hi - 1, -1); input.value = hi < 0 ? '' : history[hi]; }
     });
 
+    const idleBox = h('input', { type: 'checkbox', onchange: () => ctx.send(P.idle(idleBox.checked)) });
+    const showIdle = on => { idleBox.checked = on === true; idleBox.indeterminate = on == null; };
+    showIdle(ctx.idle());
+    const unIdle = ctx.onIdle(showIdle);
+    this.unsub = () => { unLog(); unIdle(); };
+
     root.append(
+      card('Idle fidgets', h('label', { class: 'toggle needs-link' }, idleBox, 'On'),
+        h('p', { class: 'note' }, 'Small random moves when the robot stands alone. On again at every connect.')),
       card('Log', null, log,
         h('div', { class: 'cmdline' }, input, h('button', { class: 'btn sm', onclick: submit }, 'Send')),
         h('div', { class: 'chips mt' },

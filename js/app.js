@@ -64,6 +64,19 @@ function setPlaying(name) {
   for (const fn of playSubs) fn(playing);
 }
 
+// ---- demo running and idle fidgets on/off, also from the robot's replies ("demo" ... "animation: done",
+// "idle on|off ..."); both unknown / false while the link is down ----
+function watched(initial) {
+  let value = initial;
+  const subs = new Set();
+  return {
+    get: () => value,
+    set(v) { if (v === value) return; value = v; for (const fn of subs) fn(v); },
+    on: fn => { subs.add(fn); return () => subs.delete(fn); },
+  };
+}
+const demo = watched(false), idle = watched(null);
+
 // ---- the robot's animations and gaits: asked for on every connect; a changed list remounts the tab ----
 const catalog = new Catalog(() => { if (current) show(current.id, true); });
 
@@ -75,6 +88,8 @@ const ctx = {
   get dev() { return dev; },
   playing: () => playing,
   onPlaying: fn => { playSubs.add(fn); return () => playSubs.delete(fn); },
+  demo: demo.get, onDemo: demo.on,
+  idle: idle.get, onIdle: idle.on,
   entries: () => entries,
   clearLog: () => { entries.length = 0; for (const fn of logSubs) fn(); },
   onLog: fn => { logSubs.add(fn); return () => logSubs.delete(fn); },
@@ -96,7 +111,10 @@ link.addEventListener('line', e => {
   log('< ' + text, text.startsWith('error:') ? 'err' : undefined);
   if (catalog.feed(text)) return;
   const m = /^animation: (\w+)/.exec(text);
-  if (m) setPlaying(m[1] === 'done' ? null : m[1]);
+  if (m) { setPlaying(m[1] === 'done' ? null : m[1]); if (m[1] === 'done') demo.set(false); return; }
+  if (text === 'demo') { demo.set(true); return; }
+  const i = /^idle (on|off)/.exec(text);
+  if (i) idle.set(i[1] === 'on');
 });
 link.addEventListener('error', e => { log(e.detail.text, 'err'); toast(e.detail.text, 'err'); });
 link.addEventListener('info', e => { log(e.detail.text, 'sys'); toast(e.detail.text); });
@@ -104,13 +122,13 @@ let wasOn = false;
 link.addEventListener('state', e => {
   const { state, name } = e.detail;
   linkState = e.detail;
-  if (state !== 'on') setPlaying(null);           // unknown until the robot reports again
+  if (state !== 'on') { setPlaying(null); demo.set(false); idle.set(null); }   // unknown until the robot reports again
   showStatus();
   dot.className = 'dot' + (state === 'on' ? ' on' : state === 'busy' ? ' busy' : '');
   connectBtn.textContent = state === 'on' ? 'Disconnect' : 'Connect';
   connectBtn.disabled = state === 'busy';
   view.dataset.locked = state === 'on' ? 'false' : 'true';
-  if (state === 'on') { log('connected to ' + name, 'sys'); holdWake(); send(P.catalog(), { quiet: true }); }
+  if (state === 'on') { log('connected to ' + name, 'sys'); holdWake(); send(P.catalog(), { quiet: true }); send(P.idle(true), { quiet: true }); }   // fidgets on every connect
   else if (wasOn) current?.onHidden?.();          // link down or reconnecting: stop every continuous control
   if (state === 'off') { dropWake(); if (wasOn) log('disconnected', 'sys'); }
   wasOn = state === 'on';

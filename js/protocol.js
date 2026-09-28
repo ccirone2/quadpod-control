@@ -71,6 +71,7 @@ export const plant = leg => `^ ${r(leg)}`;   // put a raised leg down again
 // ---- anim ----
 export const anim  = id => `A ${r(id)}`;
 export const demo  = () => 'Y';
+export const idle  = on => `D ${on ? 1 : 0}`;   // idle fidgets on/off (keeps the robot's interval); answers "idle on|off ..."
 
 // ---- gait ----
 export const gait  = (type, vx = 0, vy = 0, wz = 0) => `G ${r(type)} ${r(vx)} ${r(vy)} ${r(wz)}`;
