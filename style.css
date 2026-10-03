@@ -17,7 +17,9 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; }
+/* No pinch or double-tap zoom: a stray second finger while driving would zoom the controls away. Panning still
+   scrolls; children's touch-action narrows from here (manipulation and none keep working). */
+html, body { height: 100%; touch-action: pan-x pan-y; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;

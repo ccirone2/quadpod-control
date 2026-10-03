@@ -20,6 +20,9 @@ const view = $('#view'), nav = $('#tabs'), dot = $('#dot'), status = $('#status'
 const TOAST_MS = 3500;
 const DEV_HOLD_MS = 1000;
 
+// ---- no pinch zoom: iOS Safari ignores user-scalable=no and touch-action for pinch, but its gesture events cancel ----
+for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
+
 // ---- toast: every error and link event, so nothing important hides in the Console log ----
 const toastEl = h('div', { id: 'toast', role: 'status', 'aria-live': 'polite' });
 document.body.append(toastEl);
